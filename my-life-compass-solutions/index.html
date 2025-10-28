@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Life Compass Solutions | by LovingSmiles</title>
+
+  <!-- ✅ Correct CSS links -->
+  <link rel="stylesheet" href="css/patriotic.css" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <script src="include.js" defer></script>
+  <script src="lifecompass.js" defer></script>
+
+  <style>
+    body {
+      background: linear-gradient(180deg, var(--flag-red), var(--flag-white), var(--flag-blue));
+      background-attachment: fixed;
+      color: var(--text);
+      font-family: "Arial", sans-serif;
+      text-align: center;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      background: rgba(255,255,255,0.9);
+      border-bottom: 2px solid #000;
+      padding: 10px;
+      gap: 10px;
+    }
+
+    nav a {
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: bold;
+      color: var(--flag-blue);
+      transition: 0.3s;
+    }
+
+    nav a:hover {
+      background: var(--flag-red);
+      color: var(--flag-white);
+    }
+
+    header.site-header .brand {
+      font-weight: bold;
+      font-size: 1.8em;
+      color: var(--flag-blue);
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .card {
+      background: rgba(255,255,255,0.96);
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 900px;
+    }
+
+    footer {
+      margin-top: 50px;
+      padding: 20px 0;
+      background: rgba(255,255,255,0.85);
+      border-top: 2px solid #ccc;
+      font-size: 0.9em;
+      color: #333;
+    }
+
+    /* Smooth quote rotation */
+    #quoteTextDisplay, #quoteAuthorDisplay {
+      transition: opacity 1s ease-in-out;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ✅ Navigation bar -->
+  <nav>
+    <a href="../index.html">🏠 Back to Main Home</a>
+    <a href="index.html">Home</a>
+    <a href="vision.html">Vision Board</a>
+    <a href="journal.html">Journal</a>
+    <a href="growth.html">Growth Areas</a>
+    <a href="hobbies.html">Hobbies</a>
+    <a href="spiritual.html">Spiritual</a>
+    <a href="physical.html">Physical</a>
+    <a href="mental.html">Mental</a>
+    <a href="financial.html">Financial</a>
+    <a href="calendar.html">Calendar</a>
+    <a href="contact.html">Contact</a>
+    <a href="feedback.html">Feedback</a>
+    <a href="#" id="logoutBtn">Logout</a>
+  </nav>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="wrap">
+      <div class="brand">My Life Compass Solutions</div>
+    </div>
+  </header>
+
+  <!-- ✅ Rotating Quotes -->
+  <section id="daily-quote" class="wrap" style="margin:24px auto; max-width:900px;">
+    <div id="quoteBox" class="card">
+      <div id="quoteTextDisplay" class="muted" style="font-size:1.3rem; font-style:italic;">Loading quotes...</div>
+      <div id="quoteAuthorDisplay" class="muted" style="margin-top:8px;"></div>
+    </div>
+
+    <form id="addQuoteForm" class="card" style="margin-top:12px; padding:16px;">
+      <h3>💬 Share an Inspiring Quote</h3>
+      <div class="form-grid cols-2">
+        <label>Quote
+          <input id="quoteText" type="text" placeholder="Your uplifting message…" required />
+        </label>
+        <label>Author (optional)
+          <input id="quoteAuthor" type="text" placeholder="Your name or Anonymous" />
+        </label>
+      </div>
+      <button type="submit" class="btn btn-primary mt-2">Add Quote</button>
+    </form>
+  </section>
+
+  <!-- Home Section -->
+  <section id="home" class="section active wrap">
+    <div class="card center stack-md">
+      <h1>My Life Compass Solutions: A Way To Understand Yourself Better</h1>
+      <p class="muted">
+        A digital sanctuary for Spiritual, Physical, Emotional, Mental, and Financial Growth.
+        Crafted by <b>LovingSmiles</b>, inspired by Stillness, Resilience, and Purpose.
+      </p>
+      <button class="btn btn-primary">Start My Journey</button>
+    </div>
+  </section>
+
+  <!-- Mission -->
+  <section id="mission" class="card" style="max-width:900px;margin:24px auto;text-align:center;padding:20px;">
+    <h3>Privacy & Purpose - My Life Compass Solutions</h3>
+    <p>At My Life Compass Solutions, we believe your memories, reflections, and growth belong to you — not to the cloud, not to advertisers, and not to big tech.</p>
+    <p>We’re building a platform that works anywhere, even offline, helping you store your progress privately and safely.</p>
+    <p class="muted">Your story is sacred. Your data is protected. Your life is yours to navigate.</p>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>Guided by Faith. Strengthened by Fire. Moved by Stillness.</p>
+    <p>&copy; 2025 My Life Compass Solutions — by LovingSmiles</p>
+    <p style="font-size:0.85em; margin-top:8px; color:#555;">
+      This site and Temple Fellowship Network are not affiliated with or endorsed by The Church of Jesus Christ of Latter-day Saints.
+    </p>
+    <p class="muted" style="font-size:0.85rem">
+      Background music from <a href="https://pixabay.com/music/" target="_blank" rel="noopener">Pixabay</a> — used under the Pixabay License.
+    </p>
+  </footer>
+  
+
+  <!-- ✅ Include quotes.js -->
+  <script src="js/quotes.js"></script>
+
+  <!-- ✅ Rotating Quote Script -->
+  <script>
+  (function(){
+    const textEl = document.getElementById('quoteTextDisplay');
+    const authorEl = document.getElementById('quoteAuthorDisplay');
+    const quotes = window.MLCS_QUOTES || [];
+    let current = 0;
+
+    if (quotes.length > 0) {
+      showQuote();
+      setInterval(nextQuote, 10000);
+    } else {
+      textEl.textContent = 'No quotes found.';
+    }
+
+    function showQuote(){
+      const q = quotes[current];
+      textEl.style.opacity = 0;
+      authorEl.style.opacity = 0;
+      setTimeout(()=>{
+        textEl.textContent = `"${q.text}"`;
+        authorEl.textContent = q.author ? `– ${q.author}` : '';
+        textEl.style.opacity = 1;
+        authorEl.style.opacity = 1;
+      }, 500);
+    }
+
+    function nextQuote(){
+      current = (current + 1) % quotes.length;
+      showQuote();
+    }
+  })();
+  </script>
+
+  <script src="inspiration.js" defer></script>
+  <script src="assets/theme.js" defer></script>
+</body>
+</html>
