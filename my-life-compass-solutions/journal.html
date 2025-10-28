@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>My Life Compass Solutions — Journal</title>
+
+  <!-- Search (unchanged) -->
+  <link rel="stylesheet" href="/assets/search.css">
+  <script>
+    window.LCP_SEARCH_CONFIG = { indexUrl: "/pages.json", cacheVersion: "v1" };
+  </script>
+  <script defer src="/assets/search.js"></script>
+
+  <!-- Floating nav -->
+  <link rel="stylesheet" href="lcp-nav.css">
+  <script src="lcp-nav.js" defer></script>
+
+  <!-- Your shared styles + PWA + (optional) mood -->
+  <link rel="stylesheet" href="css/patriotic.css" />
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#2563eb">
+
+  <!-- Page polish -->
+  <style>
+    main.wrap { width:min(1100px,92vw); margin-inline:auto; }
+
+    /* Translucent cards so background shows */
+    .card, .jc-card {
+      background: color-mix(in srgb, var(--panel) 85%, transparent);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-2, 12px);
+      box-shadow: var(--shadow-1);
+      backdrop-filter: saturate(120%) blur(6px);
+    }
+    .jc-card{ padding:16px }
+
+    /* Sticky tabs right under header */
+    .page-tabs{
+      position:sticky; top:calc(var(--header-h) + 4px); z-index:40;
+      display:flex; gap:6px; flex-wrap:wrap; justify-content:center;
+      background: color-mix(in srgb, var(--panel) 92%, transparent);
+      backdrop-filter:saturate(140%) blur(6px);
+      border:1px solid var(--line); border-radius:999px;
+      padding:6px; margin:12px auto 16px; box-shadow:var(--shadow-1);
+    }
+    .page-tabs .tab-btn{
+      padding:.5rem .9rem; border:1px solid var(--line); border-radius:999px;
+      background:color-mix(in srgb, var(--panel) 94%, var(--bg) 6%);
+      font-weight:600; cursor:pointer
+    }
+    .page-tabs .tab-btn.is-active{
+      background:var(--accent); color:#fff;
+      border-color: color-mix(in srgb, var(--accent), #000 20%);
+      box-shadow: 0 6px 14px color-mix(in srgb, var(--accent) 25%, transparent)
+    }
+
+    /* Layout helpers */
+    .jc-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center }
+    .jc-grid{ display:grid; gap:12px }
+    .jc-2{ grid-template-columns:1fr 1fr }
+    .jc-3{ grid-template-columns:repeat(3,1fr) }
+    @media(max-width:900px){ .jc-2,.jc-3{ grid-template-columns:1fr } }
+    .jc-divider{ border-top:1px solid var(--line); margin:10px 0 }
+    .muted{ color:var(--muted) }
+    .badge{ display:inline-block; padding:.2rem .5rem; border-radius:999px; background:color-mix(in srgb, var(--panel) 70%, var(--bg) 30%); border:1px solid var(--line); font-size:.78rem }
+    .thumb-list{ display:flex; gap:8px; flex-wrap:wrap }
+    .thumb-list img{ width:84px; height:84px; object-fit:cover; border-radius:10px; border:1px solid var(--line) }
+    .hidden{ display:none }
+
+    /* Emotion chips */
+    #emotionChips{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center }
+    .chip{
+      display:inline-flex; align-items:center; gap:.45rem;
+      padding:.4rem .8rem; border:1px solid var(--line); border-radius:999px;
+      background: color-mix(in srgb, var(--panel) 92%, var(--bg) 8%);
+      cursor:pointer; user-select:none; transition:transform .18s var(--ease-1)
+    }
+    .chip:hover{ transform: translateY(-1px) }
+    .chip.is-on{
+      background:var(--accent); color:#fff; border-color:color-mix(in srgb, var(--accent), #000 20%);
+      box-shadow:0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent)
+    }
+
+    /* Sticky mini bar when editor header leaves view */
+    .entry-actions-sticky{
+      position:sticky; top:calc(var(--header-h) + 56px);
+      z-index:35; display:none; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;
+      background:color-mix(in srgb, var(--panel) 96%, transparent);
+      border:1px solid var(--line); border-radius:12px; padding:8px; margin-top:8px;
+      box-shadow:var(--shadow-1)
+    }
+    .entry-actions-sticky.show{ display:flex }
+
+    /* ===== RICH EDITOR (menubar + toolbar) ===== */
+    .menubar{display:flex;gap:16px;align-items:center;position:sticky;top:calc(var(--header-h) + 56px);z-index:38;
+      background:color-mix(in srgb, var(--panel) 92%, transparent);backdrop-filter:saturate(1.1) blur(8px);
+      padding:8px 12px;border:1px solid var(--line);border-radius:12px;margin:10px 0}
+    .menu{position:relative}
+    .menu > button{background:transparent;color:inherit;border:0;padding:6px 10px;border-radius:8px;cursor:pointer}
+    .menu > button:hover{background:rgba(255,255,255,.06)}
+    .dropdown{position:absolute;top:36px;left:0;min-width:220px;background:color-mix(in srgb, var(--panel) 96%, transparent);
+      border:1px solid var(--line);border-radius:10px;display:none;box-shadow:0 14px 40px rgba(0,0,0,.35);overflow:hidden}
+    .dropdown.open{display:block}
+    .dropdown button{display:block;width:100%;text-align:left;background:transparent;border:0;color:inherit;
+      padding:10px 12px;cursor:pointer}
+    .dropdown button:hover{background:rgba(255,255,255,.06)}
+    .sep{height:1px;background:var(--line);margin:6px 0}
+
+    .toolbar{display:flex;flex-wrap:wrap;gap:6px;padding:10px;background:color-mix(in srgb, var(--panel) 94%, transparent);border:1px solid var(--line);
+      border-radius:12px;margin:10px 0}
+    .tool{appearance:none;border:1px solid var(--line);background:transparent;color:inherit;
+      padding:6px 8px;border-radius:8px;cursor:pointer}
+    .tool:hover{background:rgba(255,255,255,.06)}
+    select.tool{padding:6px 6px;background:transparent}
+    #richEditor{min-height:320px;background:color-mix(in srgb, var(--panel) 92%, transparent);border:1px solid var(--line);border-radius:12px;
+      padding:16px;outline:none}
+    #richEditor:empty:before{content:"Start journaling…";color:var(--muted)}
+
+    .miniStatus{font-size:12px;color:var(--muted);opacity:.6;margin-top:6px}
+
+    /* Suggestions pill under editor (for misspellings) */
+    #suggestBox{display:none; position:relative; margin-top:6px}
+    #suggestBox .pill{
+      display:inline-flex; gap:6px; align-items:center; padding:6px 10px; border:1px solid var(--line);
+      background:color-mix(in srgb, var(--panel) 96%, transparent); border-radius:999px; font-size:.9rem;
+    }
+    #suggestBox button{border:1px solid var(--line); padding:4px 8px; border-radius:8px; background:transparent; cursor:pointer}
+    #suggestBox button:hover{background:rgba(255,255,255,.06)}
+
+    /* Quick Dictionary panel */
+    .miniDock{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:8px 0}
+    .miniDock input{background:transparent;border:1px solid var(--line);color:inherit;border-radius:8px;padding:6px 8px;min-width:220px}
+    .miniDock .dockCard{padding:8px 10px; border:1px solid var(--line); border-radius:10px}
+
+    /* Print */
+    @media print{
+      .page-tabs,.menubar,.toolbar,.miniDock,.entry-actions-sticky{display:none!important}
+      .jc-card{box-shadow:none}
+      #richEditor{border:0;background:#fff;color:#000}
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Shared header (floating nav from your header.html) -->
+  <div id="site-header" data-include="header.html"></div>
+ <!-- ✅ Navigation Bar (included on every MCLS page) -->
+ <nav>
+  <a href="../index.html">🏠 Back to Main Home</a>
+  <a href="index.html">Home</a>
+  <a href="vision.html">Vision Board</a>
+  <a href="journal.html">Journal</a>
+  <a href="growth.html">Growth Areas</a>
+  <a href="hobbies.html">Hobbies</a>
+  <a href="spiritual.html">Spiritual</a>
+  <a href="physical.html">Physical</a>
+  <a href="mental.html">Mental</a>
+  <a href="financial.html">Financial</a>
+  <a href="calendar.html">Calendar</a>
+  <a href="contact.html">Contact</a>
+  <a href="feedback.html">Feedback</a>
+  <a href="#" id="logoutBtn">Logout</a>
+</nav>
+  <main class="wrap">
+    <!-- Title + sticky page tabs -->
+    <section class="card" style="margin:16px 0;">
+      <h1>🖋️ Journal</h1>
+      <p class="muted">Guided prompts for structure, or the Rich Free-Write editor for flow. Your entries power insights and your personal story.</p>
+
+      <nav class="page-tabs" aria-label="Journal sections">
+        <button class="tab-btn is-active" data-tab="journal">Journal</button>
+        <button class="tab-btn" data-tab="insights">Insights</button>
+        <button class="tab-btn" data-tab="templates">Templates</button>
+        <button class="tab-btn" data-tab="library">Library</button>
+        <button class="tab-btn" data-tab="goals">Goals</button>
+        <button class="tab-btn" data-tab="reviews">Reviews</button>
+      </nav>
+    </section>
+
+    <!-- ===================== TAB: JOURNAL ===================== -->
+    <section id="tab-journal" class="section">
+      <div class="jc-grid jc-2">
+
+        <!-- LEFT: Editor (Guided + Rich Free Write) -->
+        <div id="editorCol">
+          <article class="jc-card" id="editorCard">
+            <div class="jc-row" style="justify-content:space-between; align-items:center">
+              <h2 style="margin:.2rem 0">New Entry</h2>
+              <span id="storyBadge" class="badge" style="display:none">Story ready — see “Tell My Story”</span>
+            </div>
+
+            <!-- Toggle guided vs free -->
+            <div class="jc-row" role="tablist" aria-label="Editor mode">
+              <button id="btnGuided" class="btn btn-primary" aria-pressed="true">Guided Journal</button>
+              <button id="btnFree"   class="btn">Rich Free-Write</button>
+            </div>
+
+            <!-- STICKY MINI BAR -->
+            <div id="entryStickyBar" class="entry-actions-sticky">
+              <strong>Journal actions</strong>
+              <div class="jc-row" style="gap:6px">
+                <button id="saveEntrySticky"  class="btn btn-primary">Save</button>
+                <button id="clearEntrySticky" class="btn">Clear</button>
+                <button id="lockBtnSticky"    class="btn">🔐 Lock</button>
+                <button id="panicBtnSticky"   class="btn">🚨 Panic</button>
+              </div>
+            </div>
+
+            <!-- SNAPSHOT -->
+            <h3>Snapshot</h3>
+            <div class="jc-grid jc-2">
+              <label>Date <input id="entryDate" type="date"/></label>
+              <label>Theme
+                <select id="entryTheme"><option value="">Theme (optional)</option></select>
+              </label>
+
+              <label>Mood <small class="muted" id="moodLabel">Neutral</small></label>
+              <input id="mood" type="range" min="1" max="5" value="3"/>
+
+              <label>Energy <small class="muted" id="energyLabel">Medium</small></label>
+              <input id="energy" type="range" min="1" max="5" value="3"/>
+
+              <label>Sleep (hrs) <input id="sleep" type="number" min="0" step="0.5" value="7"/></label>
+              <label>Stress (1–5) <input id="stress" type="number" min="1" max="5" value="2"/></label>
+            </div>
+
+            <div class="jc-divider"></div>
+
+            <!-- EMOTIONS -->
+            <h3>Emotions</h3>
+            <p class="muted" style="margin:.2rem 0">Tap emotions that match your day.</p>
+            <div id="emotionChips" aria-label="emotion chips"></div>
+
+            <div class="jc-divider"></div>
+
+            <!-- ===== GUIDED JOURNAL ===== -->
+            <section id="guidedArea">
+              <h3>Guided Journal</h3>
+              <div class="jc-grid jc-3">
+                <label>Gratitude 1 <input id="g_grat1" placeholder="One small, specific thing"/></label>
+                <label>Gratitude 2 <input id="g_grat2"/></label>
+                <label>Gratitude 3 <input id="g_grat3"/></label>
+              </div>
+
+              <div class="jc-grid jc-2">
+                <label>Biggest win today
+                  <textarea id="g_win" rows="2" placeholder="What went well—why?"></textarea>
+                </label>
+                <label>Hard thing today
+                  <textarea id="g_challenge" rows="2" placeholder="What made it hard—what did you try?"></textarea>
+                </label>
+              </div>
+
+              <div class="jc-grid jc-2">
+                <label>Lesson / Reframe
+                  <textarea id="g_lesson" rows="2" placeholder="What did I learn—how might I see this differently?"></textarea>
+                </label>
+                <label>Scripture / Quote (optional)
+                  <input id="g_quote" placeholder="Short verse or quote"/>
+                </label>
+              </div>
+
+              <div class="jc-grid jc-2">
+                <label>Next small step
+                  <input id="g_next" placeholder="Make it tiny and doable"/>
+                </label>
+                <label>Prayer / Intention (optional)
+                  <textarea id="g_intent" rows="2" placeholder="A short prayer or intention"></textarea>
+                </label>
+              </div>
+            </section>
+
+            <!-- ===== RICH FREE-WRITE ===== -->
+            <section id="freeArea" style="display:none">
+              <!-- MENUBAR -->
+              <div class="menubar" aria-label="Editor menu">
+                <div class="menu">
+                  <button type="button" data-menu="file">File ▾</button>
+                  <div class="dropdown" id="menu-file">
+                    <button data-action="newDoc">New</button>
+                    <button data-action="load">Load from Local</button>
+                    <button data-action="save">Save to Local</button>
+                    <div class="sep"></div>
+                    <button data-action="exportHTML">Export as .html</button>
+                    <button data-action="print">Print…</button>
+                  </div>
+                </div>
+                <div class="menu">
+                  <button type="button" data-menu="edit">Edit ▾</button>
+                  <div class="dropdown" id="menu-edit">
+                    <button data-command="undo">Undo</button>
+                    <button data-command="redo">Redo</button>
+                    <div class="sep"></div>
+                    <button data-action="findReplace">Find / Replace…</button>
+                  </div>
+                </div>
+                <div class="menu">
+                  <button type="button" data-menu="view">View ▾</button>
+                  <div class="dropdown" id="menu-view">
+                    <button data-action="toggleFullscreen">Toggle Fullscreen</button>
+                    <button data-action="spellcheck">Toggle Spellcheck</button>
+                  </div>
+                </div>
+                <div class="menu">
+                  <button type="button" data-menu="insert">Insert ▾</button>
+                  <div class="dropdown" id="menu-insert">
+                    <button data-action="insertImage">Image…</button>
+                    <button data-action="insertLink">Link…</button>
+                    <button data-action="insertDivider">Divider</button>
+                    <button data-action="insertDateTime">Date / Time</button>
+                  </div>
+                </div>
+                <div class="menu">
+                  <button type="button" data-menu="format">Format ▾</button>
+                  <div class="dropdown" id="menu-format">
+                    <button data-command="bold"><b>Bold</b></button>
+                    <button data-command="italic"><i>Italic</i></button>
+                    <button data-command="underline"><u>Underline</u></button>
+                    <button data-command="strikeThrough">Strikethrough</button>
+                    <div class="sep"></div>
+                    <button data-action="applyHeading" data-level="p">Paragraph</button>
+                    <button data-action="applyHeading" data-level="h1">Heading 1</button>
+                    <button data-action="applyHeading" data-level="h2">Heading 2</button>
+                    <button data-action="applyHeading" data-level="h3">Heading 3</button>
+                    <div class="sep"></div>
+                    <button data-command="insertUnorderedList">• Bulleted List</button>
+                    <button data-command="insertOrderedList">1. Numbered List</button>
+                    <div class="sep"></div>
+                    <button data-action="align" data-align="justifyLeft">Align Left</button>
+                    <button data-action="align" data-align="justifyCenter">Align Center</button>
+                    <button data-action="align" data-align="justifyRight">Align Right</button>
+                    <div class="sep"></div>
+                    <button data-action="textColor">Text Color…</button>
+                    <button data-action="highlightColor">Highlight…</button>
+                    <div class="sep"></div>
+                    <div class="row" style="padding:8px 12px;">
+                      <label for="fontSize">Font size:</label>
+                      <select id="fontSize" class="tool">
+                        <option value="3">12pt (default)</option>
+                        <option value="2">10pt</option>
+                        <option value="4">14pt</option>
+                        <option value="5">18pt</option>
+                        <option value="6">24pt</option>
+                        <option value="7">32pt</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="menu">
+                  <button type="button" data-menu="table">Table ▾</button>
+                  <div class="dropdown" id="menu-table">
+                    <button data-action="insertTable">Insert Table…</button>
+                    <button data-action="tableAddRow">Add Row</button>
+                    <button data-action="tableAddCol">Add Column</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TOOLBAR (quick actions) -->
+              <div class="toolbar" role="toolbar" aria-label="Formatting">
+                <button class="tool" data-command="bold"><b>B</b></button>
+                <button class="tool" data-command="italic"><i>I</i></button>
+                <button class="tool" data-command="underline"><u>U</u></button>
+                <button class="tool" data-command="strikeThrough">S</button>
+                <button class="tool" data-action="applyHeading" data-level="p">¶</button>
+                <button class="tool" data-action="applyHeading" data-level="h1">H1</button>
+                <button class="tool" data-action="applyHeading" data-level="h2">H2</button>
+                <button class="tool" data-command="insertUnorderedList">• List</button>
+                <button class="tool" data-command="insertOrderedList">1. List</button>
+                <button class="tool" data-action="align" data-align="justifyLeft">⟸</button>
+                <button class="tool" data-action="align" data-align="justifyCenter">↔</button>
+                <button class="tool" data-action="align" data-align="justifyRight">⟹</button>
+                <select id="quick-size" class="tool" title="Font size">
+                  <option value="3" selected>12pt</option>
+                  <option value="4">14pt</option>
+                  <option value="5">18pt</option>
+                  <option value="6">24pt</option>
+                </select>
+                <input type="color" id="quick-text" class="tool" title="Text color">
+                <input type="color" id="quick-highlight" class="tool" title="Highlight">
+                <button class="tool" data-action="insertImage">🖼</button>
+                <button class="tool" data-action="insertLink">🔗</button>
+                <button class="tool" data-action="insertDivider">—</button>
+                <button class="tool" data-action="insertDateTime">🗓</button>
+              </div>
+
+              <!-- RICH EDITOR AREA -->
+              <div id="richEditor" contenteditable="true" spellcheck="true"></div>
+
+              <!-- Suggestion pill + mini dictionary -->
+              <div id="suggestBox"><div class="pill">Did you mean: <span id="sugFill"></span></div></div>
+              <div class="miniDock">
+                <input id="dictInput" placeholder="Quick dictionary / thesaurus (type a word)…">
+                <div id="dictOut" class="dockCard muted">Type a word and press Enter</div>
+              </div>
+
+              <div class="miniStatus" id="autoSaveState">Auto-saving privately…</div>
+            </section>
+
+            <!-- ACTIONS -->
+            <div class="jc-row" style="gap:8px; margin-top:10px;">
+              <button id="saveEntry" class="btn btn-primary">Save</button>
+              <button id="clearEntry" class="btn">Clear</button>
+              <button id="lockBtn"   class="btn">🔐 Lock</button>
+              <button id="unlockBtn" class="btn">🔓 Unlock</button>
+              <button id="privacyBtn" class="btn">🔒 Blur</button>
+              <button id="panicBtn"   class="btn">🚨 Panic</button>
+              <button id="darkBtn"    class="btn" aria-pressed="false">🌙 Dark</button>
+            </div>
+          </article>
+        </div>
+
+        <!-- RIGHT: Review + Entries + Story (Wired in Part 2) -->
+        <div>
+          <article class="jc-card">
+            <h3>Review & Filters</h3>
+            <div class="jc-row">
+              <select id="rangePreset">
+                <option value="7">7 days</option>
+                <option value="14">14 days</option>
+                <option value="30" selected>30 days</option>
+                <option value="182">6 months</option>
+                <option value="365">1 year</option>
+                <option value="years">N years</option>
+                <option value="custom">Custom</option>
+                <option value="all">All</option>
+              </select>
+              <div id="yearsBox" class="jc-row hidden">
+                <input id="yearsBack" type="number" min="1" value="1" style="width:90px"/>
+                <button class="btn" id="applyYears">Apply</button>
+              </div>
+              <div id="customBox" class="jc-row hidden">
+                <input id="fromDate" type="date"/>
+                <input id="toDate" type="date"/>
+                <button class="btn" id="applyCustom">Apply</button>
+              </div>
+            </div>
+
+            <div class="jc-row" style="margin-top:8px">
+              <input id="searchBox" placeholder="Search text / tags…" style="flex:1 1 220px"/>
+              <label class="jc-row" style="gap:6px; align-items:center">
+                <input id="onlyStar" type="checkbox"/> <span>Starred</span>
+              </label>
+              <select id="filterEmotion"><option value="">Emotion (any)</option></select>
+              <select id="filterTheme"><option value="">Theme (any)</option></select>
+            </div>
+
+            <div class="jc-divider"></div>
+
+            <div class="jc-grid jc-2">
+              <div><div class="muted">Entries</div><div id="sumEntries" class="price">0</div></div>
+              <div><div class="muted">Avg Mood</div><div id="sumMood" class="price">–</div></div>
+              <div><div class="muted">Top Emotion</div><div id="sumTopEmo" class="price">–</div></div>
+              <div><div class="muted">Top Theme</div><div id="sumThemes" class="price">–</div></div>
+            </div>
+          </article>
+
+          <article class="jc-card">
+            <div class="jc-row" style="justify-content:space-between; align-items:center">
+              <h3>Entries</h3>
+              <div class="jc-row" style="gap:6px">
+                <button id="exportBtn" class="btn">Export JSON</button>
+                <button id="exportMdBtn" class="btn">Export Markdown</button>
+                <button id="exportCsvBtn" class="btn">Export CSV</button>
+                <label class="btn">Import JSON
+                  <input id="importFile" type="file" accept="application/json" class="hidden">
+                </label>
+                <button id="purgeBtn" class="btn btn-danger">Delete All</button>
+              </div>
+            </div>
+            <div id="entriesList" class="stack-md"></div>
+          </article>
+
+          <article class="jc-card">
+            <div class="jc-row" style="justify-content:space-between">
+              <h3>Tell My Story</h3>
+              <div class="jc-row" style="gap:8px">
+                <select id="languageSelect">
+                  <option value="en">English</option>
+                  <option value="es">Español</option>
+                  <option value="fr">Français</option>
+                </select>
+                <button id="generateStory" class="btn">Generate</button>
+                <button id="speakStory" class="btn">🔊 Read Aloud</button>
+                <button id="stopSpeak"  class="btn">⏹ Stop</button>
+              </div>
+            </div>
+            <div id="storyOut" class="mt-1"></div>
+          </article>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Placeholders for other tabs (wired in PART 2) -->
+    <section id="tab-insights" class="section" style="display:none"><article class="jc-card"><h2>Insights</h2></article></section>
+    <section id="tab-templates" class="section" style="display:none"><article class="jc-card"><h2>Templates</h2></article></section>
+    <section id="tab-library" class="section" style="display:none"><article class="jc-card"><h2>Library</h2></article></section>
+    <section id="tab-goals" class="section" style="display:none"><article class="jc-card"><h2>Goals</h2></article></section>
+    <section id="tab-reviews" class="section" style="display:none"><article class="jc-card"><h2>Reviews</h2></article></section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p>Guided by Faith. Strengthened by Fire. Moved by Stillness.</p>
+      <p>&copy; 2025 My Life Compass Solutions — by LovingSmiles</p>
+    </div>
+  </footer>
+
+  <!-- Hidden inputs for actions -->
+  <input class="hidden" type="file" id="imageInput" accept="image/*">
+
+  <!-- ====== SCRIPT PART (Journal + Rich Editor + Suggestions + Invisible Autosave) ====== -->
+  <script>
+    /* ==== Helpers & State ==== */
+    const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+    const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+    const read=(k,fb)=>{ try{return JSON.parse(localStorage.getItem(k)) ?? fb}catch{return fb} };
+    const uid=()=>crypto?.randomUUID?.()||Math.random().toString(36).slice(2);
+    const fmtDate = d=> new Date(d).toLocaleDateString();
+
+    /* Keys */
+    const K_ENTRIES = 'lc_journal_entries_v3';            // bumped to v3
+    const K_RICH    = 'lc_journal_rich_current_v1';       // rich editor HTML
+    let entries = read(K_ENTRIES,[]);
+
+    /* Tabs */
+    const tabBtns=$$('.page-tabs .tab-btn');
+    const tabs=['journal','insights','templates','library','goals','reviews'];
+    tabBtns.forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        tabBtns.forEach(b=>b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        tabs.forEach(t=>document.getElementById('tab-'+t).style.display = (btn.dataset.tab===t?'block':'none'));
+      });
+    });
+
+    /* Guided vs Free toggle */
+    const guided=$('#guidedArea'), free=$('#freeArea'), btnG=$('#btnGuided'), btnF=$('#btnFree');
+    function setMode(mode){
+      const g = (mode==='guided');
+      guided.style.display = g?'block':'none';
+      free.style.display   = g?'none':'block';
+      btnG.classList.toggle('btn-primary', g);
+      btnF.classList.toggle('btn-primary', !g);
+      btnG.setAttribute('aria-pressed', g?'true':'false');
+      btnF.setAttribute('aria-pressed', g?'false':'true');
+    }
+    btnG.addEventListener('click',()=>setMode('guided'));
+    btnF.addEventListener('click',()=>setMode('free'));
+    setMode('guided');
+
+    /* Theme/Emotion banks */
+    const DEFAULT_EMOTIONS=['Grateful','Calm','Hopeful','Motivated','Joyful','Tender','Curious','Proud','Anxious','Sad','Tired','Irritated'];
+    const DEFAULT_THEMES  =['Faith','Family','Work','Health','Learning','Service','Play','Nature','Finance'];
+    function buildThemeOptions(list=DEFAULT_THEMES){
+      const sel=$('#entryTheme'); sel.innerHTML='<option value="">Theme (optional)</option>';
+      list.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
+      const fSel=$('#filterTheme'); fSel.innerHTML='<option value="">Theme (any)</option>';
+      list.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; fSel.appendChild(o); });
+    }
+    function buildEmotionChips(list=DEFAULT_EMOTIONS){
+      const host=$('#emotionChips'); host.innerHTML='';
+      list.forEach(name=>{
+        const b=document.createElement('button');
+        b.type='button'; b.className='chip'; b.textContent=name; b.setAttribute('aria-pressed','false');
+        b.addEventListener('click',()=>{ const on=b.classList.toggle('is-on'); b.setAttribute('aria-pressed', on?'true':'false'); });
+        host.appendChild(b);
+      });
+      const fSel=$('#filterEmotion'); fSel.innerHTML='<option value="">Emotion (any)</option>';
+      list.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; fSel.appendChild(o); });
+    }
+
+    /* Mood/Energy labels */
+    const MOOD_TXT=['Very low','Low','Neutral','Good','Great'];
+    $('#mood').addEventListener('input', e=> $('#moodLabel').textContent=MOOD_TXT[e.target.value-1]);
+    $('#energy').addEventListener('input', e=>{
+      const i=+e.target.value; $('#energyLabel').textContent = i<=2?'Low':i===3?'Medium':'High';
+    });
+
+    /* STICKY BAR watcher */
+    const stickyBar=$('#entryStickyBar');
+    const observer=new IntersectionObserver(obs=>{
+      obs.forEach(({isIntersecting})=> stickyBar.classList.toggle('show', !isIntersecting));
+    }, {rootMargin:'-70px 0px 0px 0px', threshold:0});
+    observer.observe($('#editorCard'));
+
+    /* ====== RICH EDITOR functions ====== */
+    const ED = $('#richEditor');
+    const imageInput = $('#imageInput');
+
+    // load previous rich content
+    (function loadRich(){ const html = localStorage.getItem(K_RICH); if(html) ED.innerHTML = html; })();
+
+    function insertHTML(html){ document.execCommand('insertHTML', false, html); }
+    function wrap(tag){ document.execCommand('formatBlock', false, tag); }
+    function setColor(prop, val){
+      if(prop==='foreColor') document.execCommand('foreColor', false, val);
+      if(prop==='hiliteColor') document.execCommand('hiliteColor', false, val);
+    }
+    function selectionContainer(tagName){
+      const sel = window.getSelection(); if(!sel.rangeCount) return null;
+      let el = sel.getRangeAt(0).commonAncestorContainer;
+      while(el && el.nodeType===1 && el.tagName !== 'TABLE' && el !== ED) el = el.parentElement;
+      return (el && el.tagName===tagName) ? el : null;
+    }
+    function fileToDataURL(file){
+      return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(file); });
+    }
+
+    // Menus open/close
+    $$('.menu > button').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = 'menu-' + btn.dataset.menu;
+        const dd = $('#'+id);
+        const open = dd.classList.contains('open');
+        $$('.dropdown').forEach(x=>x.classList.remove('open'));
+        if(!open) dd.classList.add('open');
+      });
+    });
+    document.addEventListener('click',(e)=>{
+      if(!e.target.closest('.menu')) $$('.dropdown').forEach(x=>x.classList.remove('open'));
+    });
+    document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') $$('.dropdown').forEach(x=>x.classList.remove('open')); });
+
+    // File menu
+    $('#menu-file').addEventListener('click', async (e)=>{
+      const a = e.target.dataset.action; if(!a) return;
+      if(a==='newDoc'){ if(confirm('Clear the rich editor?')) { ED.innerHTML=''; localStorage.setItem(K_RICH, ''); } }
+      if(a==='load'){ const html = localStorage.getItem(K_RICH); if(html) ED.innerHTML = html; }
+      if(a==='save'){ localStorage.setItem(K_RICH, ED.innerHTML); }
+      if(a==='exportHTML'){
+        const blob = new Blob([`<!DOCTYPE html><meta charset="utf-8">${ED.innerHTML}`], {type:'text/html'});
+        const url = URL.createObjectURL(blob);
+        const link = Object.assign(document.createElement('a'), {href:url, download:'journal-entry.html'}); document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+      }
+      if(a==='print'){ window.print(); }
+    });
+
+    // Edit menu
+    $('#menu-edit').addEventListener('click',(e)=>{
+      const cmd = e.target.dataset.command;
+      const act = e.target.dataset.action;
+      if(cmd) document.execCommand(cmd);
+      if(act==='findReplace'){
+        const q = prompt('Find text:'); if(!q) return;
+        const r = prompt('Replace with (leave empty to only find):',''); if(r===null) return;
+        ED.innerHTML = ED.innerHTML.split(q).join(r);
+      }
+    });
+
+    // View menu
+    $('#menu-view').addEventListener('click',(e)=>{
+      const act = e.target.dataset.action;
+      if(act==='toggleFullscreen'){
+        if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+        else document.exitFullscreen().catch(()=>{});
+      }
+      if(act==='spellcheck'){ ED.spellcheck = !ED.spellcheck; alert('Spellcheck: ' + (ED.spellcheck?'ON':'OFF')); }
+    });
+
+    // Insert menu + toolbar
+    const toolbarRoot = document.body;
+    toolbarRoot.addEventListener('click', async (e)=>{
+      const act = e.target.dataset.action;
+      const cmd = e.target.dataset.command;
+      if(cmd) { document.execCommand(cmd,false,null); return; }
+      if(!act) return;
+      if(act==='applyHeading'){ const level = e.target.dataset.level || 'p'; wrap(level); }
+      if(act==='align'){ document.execCommand(e.target.dataset.align,false,null); }
+      if(act==='textColor'){ const c = prompt('Hex or color name (e.g. #ff0066):', '#ffd166'); if(c) setColor('foreColor', c); }
+      if(act==='highlightColor'){ const c = prompt('Hex or color name (e.g. #fff59d):', '#fff59d'); if(c) setColor('hiliteColor', c); }
+      if(act==='insertImage'){
+        imageInput.value='';
+        imageInput.onchange = async () => {
+          const f = imageInput.files?.[0]; if(!f) return;
+          const url = await fileToDataURL(f);
+          insertHTML(`<figure><img src="${url}" style="max-width:100%"><figcaption contenteditable="true" style="opacity:.75">Caption</figcaption></figure>`);
+        };
+        imageInput.click();
+      }
+      if(act==='insertLink'){ const u = prompt('Paste URL (https://…):','https://'); if(!u || !/^https?:\/\//i.test(u)) return; document.execCommand('createLink', false, u); }
+      if(act==='insertDivider'){ insertHTML('<hr style="border:0;border-top:1px solid var(--line);margin:16px 0">'); }
+      if(act==='insertDateTime'){ insertHTML(new Date().toLocaleString()); }
+      if(act==='insertTable'){
+        const r = Math.max(1, parseInt(prompt('Rows:','2')||'2',10));
+        const c = Math.max(1, parseInt(prompt('Columns:','2')||'2',10));
+        let html = '<table style="border-collapse:collapse;width:100%;margin:10px 0">';
+        for(let i=0;i<r;i++){ html+='<tr>'; for(let j=0;j<c;j++){ html+=`<td style="border:1px solid var(--line);padding:6px" contenteditable="true">${i===0?'<b>Header</b>':'Cell'}</td>`; } html+='</tr>'; }
+        html+='</table>'; insertHTML(html);
+      }
+      if(act==='tableAddRow'){
+        const tbl = selectionContainer('TABLE'); if(!tbl) return alert('Put the caret inside a table first.');
+        const tr = tbl.rows[tbl.rows.length-1].cloneNode(true); tr.querySelectorAll('td').forEach(td=> td.innerHTML='Cell'); tbl.tBodies[0].appendChild(tr);
+      }
+      if(act==='tableAddCol'){
+        const tbl = selectionContainer('TABLE'); if(!tbl) return alert('Put the caret inside a table first.');
+        [...tbl.rows].forEach((row,idx)=>{ const cell = row.cells[row.cells.length-1].cloneNode(true); cell.innerHTML = idx===0?'<b>Header</b>':'Cell'; row.appendChild(cell); });
+      }
+    });
+    $('#fontSize').addEventListener('change', e=> document.execCommand('fontSize', false, e.target.value));
+    $('#quick-size').addEventListener('change', e=> document.execCommand('fontSize', false, e.target.value));
+    $('#quick-text').addEventListener('input', e=> setColor('foreColor', e.target.value));
+    $('#quick-highlight').addEventListener('input', e=> setColor('hiliteColor', e.target.value));
+
+    /* ===== Invisible Auto-save (every 2s, no flashing UI) ===== */
+    let saveTick = null;
+    function silentSave(){ localStorage.setItem(K_RICH, ED.innerHTML); }
+    function startAutoSave(){
+      if(saveTick) clearInterval(saveTick);
+      saveTick = setInterval(silentSave, 2000);
+    }
+    startAutoSave();
+
+    /* ===== Quick suggestions (lightweight, local) ===== */
+    // Tiny demo dictionary + synonyms (you can expand this later)
+    const LITE_DICT = {
+      "grateful": {def:"feeling or showing appreciation", syn:["thankful","appreciative","pleased"]},
+      "gratitude": {def:"the quality of being thankful", syn:["thankfulness","appreciation"]},
+      "challenge": {def:"a task or situation that tests ability", syn:["test","trial","difficulty"]},
+      "beautiful": {def:"pleasing the senses or mind", syn:["lovely","attractive","pretty"]},
+      "strength": {def:"the quality of being strong", syn:["power","resilience","toughness"]},
+      "patience": {def:"the capacity to accept delay calmly", syn:["forbearance","tolerance"]}
+    };
+    const WORD_LIST = Object.keys(LITE_DICT);
+
+    function lev(a,b){
+      const m=a.length,n=b.length; const dp=Array.from({length:m+1},()=>Array(n+1).fill(0));
+      for(let i=0;i<=m;i++) dp[i][0]=i; for(let j=0;j<=n;j++) dp[0][j]=j;
+      for(let i=1;i<=m;i++){ for(let j=1;j<=n;j++){
+        const cost = a[i-1]===b[j-1]?0:1;
+        dp[i][j] = Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+cost);
+      } }
+      return dp[m][n];
+    }
+    function topSuggestions(word, k=3){
+      const w = word.toLowerCase();
+      const scored = WORD_LIST.map(v=>[v, lev(w,v)]);
+      scored.sort((a,b)=>a[1]-b[1]);
+      return scored.filter(x=>x[1]>0 && x[1]<=3).slice(0,k).map(x=>x[0]);
+    }
+    function lastWordAroundCaret(){
+      const sel = window.getSelection(); if(!sel.rangeCount) return '';
+      const range = sel.getRangeAt(0);
+      const node = range.startContainer;
+      const text = (node.nodeType===3 ? node.textContent : node.innerText || '').slice(0, range.startOffset);
+      const m = text.match(/([A-Za-z]{3,})$/); return m? m[1] : '';
+    }
+
+    const sugBox = $('#suggestBox'), sugFill = $('#sugFill');
+    function showSuggestionsFor(word){
+      const cands = topSuggestions(word);
+      if(!cands.length){ sugBox.style.display='none'; return; }
+      sugFill.innerHTML = cands.map(s=>`<button data-suggest="${s}">${s}</button>`).join(' ');
+      sugBox.style.display='block';
+    }
+    ED.addEventListener('keyup', (e)=>{
+      if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) return;
+      const w = lastWordAroundCaret();
+      if(w && !WORD_LIST.includes(w.toLowerCase())) showSuggestionsFor(w); else sugBox.style.display='none';
+    });
+    sugBox.addEventListener('click', (e)=>{
+      const s = e.target.getAttribute('data-suggest'); if(!s) return;
+      document.execCommand('insertText', false, s + ' ');
+      sugBox.style.display='none';
+    });
+
+    // Mini dictionary/thesaurus lookup
+    $('#dictInput').addEventListener('keydown', (e)=>{
+      if(e.key!=='Enter') return;
+      const w=e.target.value.trim().toLowerCase(); if(!w){ $('#dictOut').textContent='Type a word and press Enter'; return; }
+      const rec=LITE_DICT[w];
+      if(!rec){ $('#dictOut').innerHTML = 'Not in local sample. (Browser spellcheck still active.)'; return; }
+      $('#dictOut').innerHTML = `<strong>${w}</strong>: ${rec.def}<br><em>Synonyms:</em> ${rec.syn.join(', ')}`;
+    });
+
+    /* ===== Init ===== */
+    function init(){
+      $('#entryDate').value = new Date().toISOString().slice(0,10);
+      buildThemeOptions(); buildEmotionChips();
+    }
+    document.addEventListener('DOMContentLoaded', init);
+
+    /* Basic privacy/panic/dark/lock UI */
+    const toast=(msg,ms=1400)=>{ const t=document.createElement('div'); t.textContent=msg; Object.assign(t.style,{position:'fixed',bottom:'20px',left:'50%',transform:'translateX(-50%)',padding:'8px 12px',border:'1px solid var(--line)',background:'var(--panel)',borderRadius:'10px',boxShadow:'var(--shadow-2)',zIndex:9999}); document.body.appendChild(t); setTimeout(()=>t.remove(),ms); };
+    $('#privacyBtn').addEventListener('click', ()=> document.body.classList.toggle('private-blur'));
+    function panic(){ document.body.classList.add('private-blur'); window.scrollTo({top:0, behavior:'instant'}); }
+    $('#panicBtn').addEventListener('click', panic);
+    $('#panicBtnSticky').addEventListener('click', panic);
+    $('#lockBtn').addEventListener('click', ()=>alert('🔐 Local lock simulated (UI only).'));
+    $('#unlockBtn').addEventListener('click', ()=>alert('🔓 Unlocked (UI only).'));
+    $('#darkBtn').addEventListener('click', ()=>{
+      const on=document.documentElement.classList.toggle('dark');
+      $('#darkBtn').setAttribute('aria-pressed', on?'true':'false');
+    });
+
+    /* Save button merges either Guided text or Rich editor HTML into a local entry (entries list wired in PART 2) */
+    async function saveEntry(){
+      const modeGuided = getComputedStyle($('#guidedArea')).display!=='none';
+      const text = modeGuided
+        ? (function(){
+            const g1=$('#g_grat1').value, g2=$('#g_grat2').value, g3=$('#g_grat3').value;
+            const win=$('#g_win').value, ch=$('#g_challenge').value, ls=$('#g_lesson').value;
+            const qt=$('#g_quote').value, nx=$('#g_next').value, pr=$('#g_intent').value;
+            const parts=[];
+            if(g1||g2||g3) parts.push(`Gratitude: ${[g1,g2,g3].filter(Boolean).join(' · ')}`);
+            if(win) parts.push(`Win: ${win}`);
+            if(ch)  parts.push(`Challenge: ${ch}`);
+            if(ls)  parts.push(`Lesson: ${ls}`);
+            if(qt)  parts.push(`Scripture/Quote: ${qt}`);
+            if(nx)  parts.push(`Next step: ${nx}`);
+            if(pr)  parts.push(`Prayer/Intention: ${pr}`);
+            return parts.join('\\n');
+          })()
+        : ED.innerHTML; // save rich HTML
+
+      const emos = Array.from(document.querySelectorAll('#emotionChips .chip.is-on')).map(x=>x.textContent);
+
+      const data={
+        id: uid(),
+        date: $('#entryDate').value || new Date().toISOString().slice(0,10),
+        theme: $('#entryTheme').value || '',
+        mood: +$('#mood').value,
+        energy: +$('#energy').value,
+        sleep: +($('#sleep').value||0),
+        stress:+($('#stress').value||0),
+        emotions: emos,
+        text,
+        tags: [], extras: {}, photos: [], // photos handled in Part 2 if you want
+        starred:false,
+        ts: Date.now(),
+        rich: !modeGuided // mark if this one is rich HTML
+      };
+
+      entries.push(data); save(K_ENTRIES, entries);
+      toast('Saved ✅');
+    }
+    $('#saveEntry').addEventListener('click', saveEntry);
+    $('#saveEntrySticky').addEventListener('click', saveEntry);
+    $('#clearEntry').addEventListener('click', ()=>{
+      if(getComputedStyle($('#guidedArea')).display!=='none'){
+        ['g_grat1','g_grat2','g_grat3','g_win','g_challenge','g_lesson','g_quote','g_next','g_intent']
+          .forEach(id=>{ const el=$('#'+id); if(el) el.value=''; });
+        $$('#emotionChips .chip.is-on').forEach(ch=>ch.classList.remove('is-on'));
+      } else {
+        ED.innerHTML='';
+        localStorage.setItem(K_RICH,'');
+      }
+    });
+  </script>
+
+  <!-- Shared header include + active-link highlighter -->
+  <script src="include.js" defer></script>
+<script>
+/* ========= PART 2/2 — Journal extras, tabs, lists, exports, insights ========= */
+
+/* Reuse helpers & state from Part 1 */
+const K_ENTRIES = 'lc_journal_entries_v3';
+const K_TPL     = 'lc_journal_templates_v1';
+const K_LIB     = 'lc_journal_library_v1';
+const K_GOALS   = 'lc_journal_goals_v1';
+
+let entries   = (typeof entries!=='undefined' && Array.isArray(entries)) ? entries : (JSON.parse(localStorage.getItem(K_ENTRIES)||'[]'));
+let templates = JSON.parse(localStorage.getItem(K_TPL) || '[]');
+let library   = JSON.parse(localStorage.getItem(K_LIB) || '{"prompts":[],"quotes":[],"photos":[]}');
+let jgoals    = JSON.parse(localStorage.getItem(K_GOALS) || '[]');
+
+const save = (k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const fmtDate = (d)=> new Date(d).toLocaleDateString();
+
+/* --------------------------- Build other tabs UI --------------------------- */
+function mountInsights(){
+  const host = document.querySelector('#tab-insights article');
+  host.innerHTML = `
+    <h2>Insights</h2>
+    <p class="muted">Quick patterns from your saved entries.</p>
+
+    <div class="jc-grid jc-3" style="margin-top:10px">
+      <div><div class="muted">Most used tags</div><div id="insMostTags" class="price">–</div></div>
+      <div><div class="muted">Common themes</div><div id="insTopThemes" class="price">–</div></div>
+      <div><div class="muted">Gratitude streak</div><div id="insGratStreak" class="price">–</div></div>
+    </div>
+
+    <div class="jc-divider"></div>
+
+    <h3>Word Cloud (top words from writing)</h3>
+    <p class="muted">Simple list for now; you can swap for a canvas word-cloud later.</p>
+    <div id="insWordCloud" class="badge" style="display:block; padding:10px"></div>
+  `;
+}
+function mountTemplates(){
+  const host = document.querySelector('#tab-templates article');
+  host.innerHTML = `
+    <h2>Templates</h2>
+    <p class="muted">Save short templates you can re-use when writing.</p>
+
+    <div class="jc-grid jc-2">
+      <label>Template title <input id="tplTitle" placeholder="e.g., Evening Review"></label>
+      <label>Category
+        <select id="tplCat">
+          <option>Daily</option><option>Weekly</option><option>Spiritual</option><option>Gratitude</option><option>Work</option>
+        </select>
+      </label>
+    </div>
+    <label>Template text
+      <textarea id="tplText" rows="6" placeholder="Write your template… Use {placeholders} if you want."></textarea>
+    </label>
+    <div class="jc-row">
+      <button id="tplSave" class="btn btn-primary">Save Template</button>
+      <button id="tplClear" class="btn">Clear</button>
+    </div>
+
+    <div class="jc-divider"></div>
+
+    <h3>Your Templates</h3>
+    <p class="muted">Click “Use” to put it into the current editor.</p>
+    <div id="tplList" class="stack-md"></div>
+  `;
+}
+function mountLibrary(){
+  const host = document.querySelector('#tab-library article');
+  host.innerHTML = `
+    <h2>Prompt Library & Keepsakes</h2>
+    <p class="muted">Keep favorite prompts, quotes, and photos here.</p>
+
+    <div class="jc-grid jc-3">
+      <div>
+        <h3>Saved Prompts</h3>
+        <label>Prompt <input id="libPrompt" placeholder="e.g., Where did I see kindness today?"></label>
+        <div class="jc-row">
+          <button id="libPromptAdd" class="btn btn-primary">Save Prompt</button>
+          <button id="libPromptUse" class="btn">Use in Editor</button>
+        </div>
+        <div id="libPromptList" class="stack-md" style="margin-top:8px"></div>
+      </div>
+
+      <div>
+        <h3>Favorite Quotes</h3>
+        <label>Quote <input id="libQuote" placeholder="e.g., Be still and know…"></label>
+        <label>Author <input id="libAuthor" placeholder="Optional"></label>
+        <div class="jc-row">
+          <button id="libQuoteAdd" class="btn btn-primary">Save Quote</button>
+        </div>
+        <div id="libQuoteList" class="stack-md" style="margin-top:8px"></div>
+      </div>
+
+      <div>
+        <h3>Photos</h3>
+        <label class="btn">Upload Photos
+          <input id="libPhotos" type="file" accept="image/*" multiple class="hidden">
+        </label>
+        <div id="libPhotoList" class="thumb-list" style="margin-top:8px"></div>
+      </div>
+    </div>
+  `;
+}
+function mountGoals(){
+  const host = document.querySelector('#tab-goals article');
+  host.innerHTML = `
+    <h2>Journal Goals</h2>
+    <p class="muted">Set small goals tied to journaling (frequency, focus, or outcomes).</p>
+
+    <div class="jc-grid jc-3">
+      <label>Goal title <input id="jgTitle" placeholder="e.g., Write 5 days/week"></label>
+      <label>Type
+        <select id="jgType">
+          <option>Frequency</option><option>Focus</option><option>Outcome</option>
+        </select>
+      </label>
+      <label>Target date <input id="jgDate" type="date"></label>
+    </div>
+
+    <label>Notes <textarea id="jgNotes" rows="3" placeholder="Why this matters, how you’ll do it…"></textarea></label>
+    <div class="jc-row">
+      <button id="jgAdd" class="btn btn-primary">Add Goal</button>
+      <button id="jgClear" class="btn">Clear</button>
+    </div>
+
+    <div class="jc-divider"></div>
+
+    <h3>Your Goals</h3>
+    <div id="jgList" class="stack-md"></div>
+  `;
+}
+function mountReviews(){
+  const host = document.querySelector('#tab-reviews article');
+  host.innerHTML = `
+    <h2>Weekly / Monthly Reviews</h2>
+    <p class="muted">Generate quick reviews from your recent entries. You can edit the text before saving as a new entry.</p>
+
+    <div class="jc-row">
+      <select id="revRange">
+        <option value="7">Last 7 days</option>
+        <option value="30" selected>Last 30 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+      <button id="revGenerate" class="btn btn-primary">Generate Review</button>
+      <button id="revSave" class="btn">Save as Entry</button>
+    </div>
+
+    <label>Review Text
+      <textarea id="revText" rows="10" placeholder="Your generated review will appear here…"></textarea>
+    </label>
+  `;
+}
+
+/* Mount all non-journal tabs */
+mountInsights(); mountTemplates(); mountLibrary(); mountGoals(); mountReviews();
+
+/* ------------------------ Entries list + filters + exports ------------------------ */
+const stripHtml = (html)=> (html||'').replace(/<[^>]*>/g,''); // preview safety
+
+function dateRangeFilter(e){
+  const preset = $('#rangePreset').value;
+  if (preset==='all') return true;
+
+  const d = new Date(e.date).getTime();
+  const now = Date.now();
+
+  if (!isFinite(d)) return false;
+
+  if (/^\d+$/.test(preset)) {
+    const days = Number(preset);
+    return d >= (now - days*86400000);
+  }
+  if (preset==='years') {
+    const years = Math.max(1, Number($('#yearsBack').value||'1'));
+    const cutoff = new Date(); cutoff.setFullYear(cutoff.getFullYear()-years);
+    return d >= cutoff.getTime();
+  }
+  if (preset==='custom') {
+    const from = $('#fromDate').value ? new Date($('#fromDate').value).getTime() : -Infinity;
+    const to   = $('#toDate').value   ? new Date($('#toDate').value).getTime()   :  Infinity;
+    return d >= from && d <= to;
+  }
+  return true;
+}
+
+function textFilter(e){
+  const q = ($('#searchBox').value||'').trim().toLowerCase();
+  if (!q) return true;
+  const body = (e.rich ? stripHtml(e.text) : (e.text||'')).toLowerCase();
+  const tags = (e.tags||[]).join(' ').toLowerCase();
+  const fields = [body, tags, e.theme?.toLowerCase()||'', (e.emotions||[]).join(' ').toLowerCase()];
+  return fields.some(f=>f.includes(q));
+}
+function selectFilters(e){
+  const emo = $('#filterEmotion').value;
+  const thm = $('#filterTheme').value;
+  if (emo && !(e.emotions||[]).includes(emo)) return false;
+  if (thm && e.theme !== thm) return false;
+  if ($('#onlyStar').checked && !e.starred) return false;
+  return true;
+}
+
+function renderEntries(){
+  const host=$('#entriesList'); host.innerHTML='';
+  const list=entries.slice().sort((a,b)=> (new Date(b.date)-new Date(a.date)));
+
+  const filtered = list.filter(dateRangeFilter).filter(textFilter).filter(selectFilters);
+
+  // Metrics
+  $('#sumEntries').textContent = filtered.length || 0;
+  $('#sumMood').textContent = filtered.length
+    ? (filtered.reduce((s,e)=>s+(Number(e.mood)||0),0)/filtered.length).toFixed(2)
+    : '–';
+
+  const emoCount={}, themeCount={};
+  filtered.forEach(e=>{
+    (e.emotions||[]).forEach(n=> emoCount[n]=(emoCount[n]||0)+1 );
+    if(e.theme) themeCount[e.theme]=(themeCount[e.theme]||0)+1;
+  });
+  $('#sumTopEmo').textContent = Object.entries(emoCount).sort((a,b)=>b[1]-a[1])[0]?.[0] || '–';
+  $('#sumThemes').textContent = Object.entries(themeCount).sort((a,b)=>b[1]-a[1])[0]?.[0] || '–';
+
+  // Cards
+  filtered.forEach(e=>{
+    const card=document.createElement('article'); card.className='jc-card';
+    const contentPreview = e.rich ? stripHtml(e.text).slice(0,600) : (e.text||'').slice(0,600);
+    card.innerHTML=`
+      <div class="jc-row" style="justify-content:space-between;align-items:center">
+        <div><strong>${fmtDate(e.date)}</strong>
+          • <span class="badge">Mood ${e.mood}</span>
+          ${e.theme?`• <span class="badge">${e.theme}</span>`:''}
+          ${e.rich?`• <span class="badge">Rich</span>`:''}
+        </div>
+        <div class="jc-row" style="gap:6px">
+          <button class="btn btn-ghost" data-act="star" data-id="${e.id}">${e.starred?'★ Starred':'☆ Star'}</button>
+          <button class="btn btn-ghost" data-act="view" data-id="${e.id}">View</button>
+          <button class="btn btn-ghost" data-act="del" data-id="${e.id}">Delete</button>
+        </div>
+      </div>
+      ${(e.emotions||[]).length? `<div class="muted" style="margin:6px 0">${e.emotions.map(x=>`<span class="badge">${x}</span>`).join(' ')}</div>`:''}
+      ${contentPreview ? `<p style="white-space:pre-wrap">${contentPreview.replace(/</g,'&lt;')}</p>`:''}
+    `;
+    host.appendChild(card);
+  });
+
+  // Actions
+  host.onclick = (ev)=>{
+    const id=ev.target.getAttribute('data-id'), act=ev.target.getAttribute('data-act');
+    if(!id || !act) return;
+    const i=entries.findIndex(x=>x.id===id); if(i<0) return;
+    if(act==='del'){
+      if(confirm('Delete this entry?')){
+        entries.splice(i,1); save(K_ENTRIES,entries); renderEntries();
+      }
+    }
+    if(act==='star'){ entries[i].starred=!entries[i].starred; save(K_ENTRIES,entries); renderEntries(); }
+    if(act==='view'){
+      const e = entries[i];
+      const html = e.rich ? e.text : (e.text||'').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+      const w = window.open('', '_blank');
+      w.document.write(`<!DOCTYPE html><meta charset="utf-8"><title>Entry ${fmtDate(e.date)}</title>
+        <body style="font:16px/1.5 system-ui;padding:20px;max-width:800px;margin:auto">
+          <h2>${fmtDate(e.date)} ${e.theme?('— '+e.theme):''}</h2>
+          <div>${e.rich?html:`<p>${html}</p>`}</div>
+        </body>`);
+      w.document.close();
+    }
+  };
+}
+
+/* Filters UI toggles */
+$('#rangePreset').addEventListener('change', ()=>{
+  $('#yearsBox').classList.toggle('hidden', $('#rangePreset').value!=='years');
+  $('#customBox').classList.toggle('hidden', $('#rangePreset').value!=='custom');
+  renderEntries();
+});
+['applyYears','applyCustom','searchBox','filterEmotion','filterTheme','onlyStar']
+  .forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    (id==='applyYears' || id==='applyCustom') ? el.addEventListener('click', renderEntries)
+      : el.addEventListener('input', renderEntries);
+  });
+
+/* Exports / Import */
+function toCSV(rows){
+  if(!rows.length) return '';
+  const keys=Object.keys(rows[0]); const esc=s=>`"${String(s??'').replace(/"/g,'""')}"`;
+  return keys.map(esc).join(',')+'\n'+rows.map(r=>keys.map(k=>esc(r[k])).join(',')).join('\n');
+}
+$('#exportBtn').addEventListener('click', ()=>{
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(entries,null,2)],{type:'application/json'}));
+  a.download='journal.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),800);
+});
+$('#exportMdBtn').addEventListener('click', ()=>{
+  const md=entries.map(e=>`### ${fmtDate(e.date)}${e.theme?` — ${e.theme}`:''}
+- Mood: ${e.mood}
+- Emotions: ${(e.emotions||[]).join(', ')}
+
+${e.rich?stripHtml(e.text): (e.text||'')}
+
+`).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([md],{type:'text/markdown'}));
+  a.download='journal.md'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),800);
+});
+$('#exportCsvBtn').addEventListener('click', ()=>{
+  const flat=entries.map(e=>({date:e.date, theme:e.theme, mood:e.mood, energy:e.energy, sleep:e.sleep, stress:e.stress, emotions:(e.emotions||[]).join('|'), tags:(e.tags||[]).join('|'), text:e.rich?stripHtml(e.text): (e.text||'')}));
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([toCSV(flat)],{type:'text/csv'}));
+  a.download='journal.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),800);
+});
+$('#importFile').addEventListener('change', ()=>{
+  const f=$('#importFile').files?.[0]; if(!f) return;
+  const fr=new FileReader();
+  fr.onload=()=>{ try{
+      const incoming=JSON.parse(fr.result);
+      if(Array.isArray(incoming)){ entries=incoming; save(K_ENTRIES,entries); renderEntries(); alert('Imported ✅'); }
+    }catch{ alert('Import failed'); } };
+  fr.readAsText(f);
+});
+$('#purgeBtn').addEventListener('click', ()=>{
+  if(confirm('Delete ALL entries (local only)?')){ entries=[]; save(K_ENTRIES,entries); renderEntries(); }
+});
+
+/* ------------------------------- Story + TTS ------------------------------- */
+function generateStoryText(lang='en'){
+  if(entries.length<1) return 'No entries yet.';
+  const last=entries.slice(-Math.min(entries.length,60));
+  const emos={}, themes={}, lines=[];
+  last.forEach(e=>{ (e.emotions||[]).forEach(x=> emos[x]=(emos[x]||0)+1); if(e.theme) themes[e.theme]=(themes[e.theme]||0)+1; const t=e.rich?stripHtml(e.text):e.text; if(t) lines.push(t); });
+  const top = (obj)=>Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
+  const topE=top(emos), topT=top(themes);
+
+  const intro={en:'Over these days, a quiet thread emerges.',
+               es:'A lo largo de estos días, surge un hilo silencioso.',
+               fr:'Au fil de ces jours, un fil discret apparaît.'}[lang]||'Over these days, a quiet thread emerges.';
+  const body={
+    en:`You often touched on ${topT.join(', ')||'what matters'}, and felt ${topE.join(', ')||'many feelings'} along the way. Your pages show small steps, honest pauses, and sparks of gratitude.`,
+    es:`A menudo tocaste ${topT.join(', ')||'lo que importa'}, y sentiste ${topE.join(', ')||'muchas emociones'} en el camino. Tus páginas muestran pasos pequeños, pausas sinceras y destellos de gratitud.`,
+    fr:`Tu as souvent abordé ${topT.join(', ')||'l’essentiel'}, et tu as ressenti ${topE.join(', ')||'beaucoup d’émotions'}. Tes pages révèlent de petits pas, des pauses sincères et des éclairs de gratitude.`
+  }[lang];
+  const outro={en:'Keep writing; this becomes a map—not of perfection, but of becoming.',
+               es:'Sigue escribiendo; esto se vuelve un mapa—no de perfección, sino de transformación.',
+               fr:'Continue d’écrire; cela devient une carte—non de perfection, mais de devenir.'}[lang];
+  return `${intro}\n\n${body}\n\n${outro}`;
+}
+$('#generateStory').addEventListener('click', ()=>{
+  const lang=$('#languageSelect').value||'en';
+  const text=generateStoryText(lang);
+  $('#storyOut').innerHTML=`<div class="card"><p style="white-space:pre-wrap">${text.replace(/</g,'&lt;')}</p></div>`;
+});
+function speak(text, lang='en'){
+  if(!('speechSynthesis' in window)){ alert('Text-to-speech not supported on this browser.'); return; }
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang = lang==='es'?'es-ES': lang==='fr'?'fr-FR':'en-US';
+  speechSynthesis.speak(u);
+}
+$('#speakStory').addEventListener('click', ()=>{
+  const text = $('#storyOut').innerText.trim() || generateStoryText($('#languageSelect').value||'en');
+  speak(text, $('#languageSelect').value||'en');
+});
+$('#stopSpeak').addEventListener('click', ()=> speechSynthesis.cancel());
+
+/* --------------------------------- Insights -------------------------------- */
+function refreshInsights(){
+  const list = entries.slice();
+  // most tags
+  const tagCount={};
+  list.forEach(e => (e.tags||[]).forEach(t => tagCount[t]=(tagCount[t]||0)+1));
+  const topTags = Object.entries(tagCount).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([t,c])=>`${t} (${c})`).join(', ')||'—';
+  $('#insMostTags').textContent = topTags;
+
+  const themeCount={};
+  list.forEach(e => { if(e.theme) themeCount[e.theme]=(themeCount[e.theme]||0)+1; });
+  const topThemes = Object.entries(themeCount).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([t,c])=>`${t} (${c})`).join(', ')||'—';
+  $('#insTopThemes').textContent = topThemes;
+
+  // gratitude streak: days with gratitude lines (very lightweight)
+  const days = new Set(list.filter(e => /\bgrat/i.test(e.rich?stripHtml(e.text): (e.text||''))).map(e => e.date));
+  $('#insGratStreak').textContent = String(days.size || 0) + ' days';
+
+  // "word cloud" list: simple frequency from free text
+  const freq = {};
+  list.forEach(e=>{
+    const text=(e.rich?stripHtml(e.text): (e.text||'')).toLowerCase().replace(/[^a-z0-9\s]/g,' ');
+    text.split(/\s+/).filter(w=>w.length>3).forEach(w=> freq[w]=(freq[w]||0)+1);
+  });
+  const cloud = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,25).map(([w,c])=>`${w}(${c})`).join('  ');
+  $('#insWordCloud').textContent = cloud || '—';
+}
+
+/* -------------------------------- Templates (enhanced) -------------------------------- */
+
+// --- BOOTSTRAP for Templates tab (safe to paste once) ---
+(function(){
+  // Helpers (no-op if you already have them)
+  window.$  = window.$  || ((s,r=document)=>r.querySelector(s));
+  window.$$ = window.$$ || ((s,r=document)=>Array.from(r.querySelectorAll(s)));
+  window.save = window.save || ((k,v)=>localStorage.setItem(k, JSON.stringify(v)));
+  window.read = window.read || ((k,fb)=>{ try{return JSON.parse(localStorage.getItem(k)) ?? fb}catch{return fb} });
+
+  // Keys + state if not present
+  window.K_TPL = window.K_TPL || 'lc_journal_templates_v1';
+  if (!Array.isArray(window.templates)) {
+    window.templates = read(K_TPL, []);
+  }
+
+  // Make sure the Templates container exists
+  function ensureTplHTML(){
+    if (!document.getElementById('tplList')) {
+      // If your HTML somehow misses the list container, create it
+      const sec = document.getElementById('tab-templates') || document.body;
+      const div = document.createElement('div');
+      div.id = 'tplList';
+      div.className = 'stack-md';
+      sec.appendChild(div);
+      console.warn('[Templates] #tplList was missing; created automatically.');
+    }
+  }
+
+  // Run when DOM is ready
+  function boot(){
+    ensureTplHTML();
+    try {
+      if (typeof renderTemplates === 'function') {
+        renderTemplates();
+      } else {
+        console.error('renderTemplates() not found. Paste the Enhanced Templates block before this bootstrap.');
+      }
+    } catch (e) {
+      console.error('renderTemplates error:', e);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+
+  // Optional: watch Templates tab becoming visible and refresh once
+  const btn = document.querySelector('.page-tabs [data-tab="templates"]');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      if (typeof renderTemplates === 'function') {
+        try { renderTemplates(); } catch {}
+      }
+    }, { once:true });
+  }
+})();
+
+function renderTemplates(){
+  const host = $('#tplList'); 
+  if (!host) return; // safety
+  host.innerHTML='';
+
+  // Ensure "Load Starter Templates" button exists (auto-inject above list)
+  let loadBtn = document.getElementById('tplLoadDefaults');
+  if (!loadBtn) {
+    loadBtn = document.createElement('button');
+    loadBtn.id = 'tplLoadDefaults';
+    loadBtn.className = 'btn btn-primary';
+    loadBtn.textContent = 'Load Starter Templates';
+    // Try to insert before tplList; if that fails, append at end of the section
+    if (host.parentElement) host.parentElement.insertBefore(loadBtn, host);
+    else document.body.appendChild(loadBtn);
+  }
+
+  if(!templates.length){
+    host.innerHTML='<p class="muted">No templates yet. Create one above or click “Load Starter Templates”.</p>';
+    return;
+  }
+
+  templates.slice().reverse().forEach(t=>{
+    const el=document.createElement('div'); 
+    el.className='card';
+    el.innerHTML = `
+      <strong>${t.title}</strong> ${t.cat ? `<span class="badge">${t.cat}</span>`:''}
+      <pre style="white-space:pre-wrap;margin:.4rem 0">${(t.text||'').replace(/</g,'&lt;')}</pre>
+      <div class="jc-row">
+        <button class="btn" data-use="${t.id}">Use</button>
+        <button class="btn btn-danger" data-del="${t.id}">Delete</button>
+      </div>
+    `;
+    host.appendChild(el);
+  });
+
+  // One-click "Use" (inserts into whichever editor is visible)
+  host.onclick=(e)=>{
+    const idUse=e.target.getAttribute('data-use');
+    const idDel=e.target.getAttribute('data-del');
+
+    if(idUse){
+      const t=templates.find(x=>x.id===idUse); 
+      if(!t) return;
+
+      insertTemplateIntoEditor(t.text || '');
+      toast('Template inserted ✨');
+    }
+
+    if(idDel){
+      templates = templates.filter(x=>x.id!==idDel);
+      save(K_TPL,templates); 
+      renderTemplates();
+    }
+  };
+
+  // Wire the auto-injected Load Starter Templates button (once)
+  loadBtn.onclick = ()=>{
+    const defaults = getStarterTemplates();
+    // Replace existing (ask first if you already have some)
+    if (templates.length && !confirm('Replace existing templates with starter set?')) return;
+    templates = defaults;
+    save(K_TPL, templates);
+    renderTemplates();
+    toast('Starter templates loaded ✅');
+  };
+}
+
+// Helper: insert template text into whichever editor is visible
+function insertTemplateIntoEditor(text){
+  const guidedArea = document.querySelector('#guidedArea');
+  const isGuidedVisible = guidedArea && getComputedStyle(guidedArea).display !== 'none';
+
+  if (isGuidedVisible) {
+    // Gentle default: drop into the “Lesson / Reframe” box
+    const g = document.querySelector('#g_lesson');
+    if (g) g.value = (g.value ? g.value + '\n' : '') + text;
+  } else {
+    // Free Write textarea (your code uses #entryText)
+    const ta = document.querySelector('#entryText');
+    if (ta) ta.value = (ta.value ? ta.value + '\n' : '') + text;
+    // If you happen to use a contenteditable editor elsewhere, fallback:
+    const ed = document.querySelector('#richEditor,[contenteditable="true"]');
+    if (ed && ed.isContentEditable) {
+      document.execCommand('insertHTML', false, `<p>${text.replace(/</g,'&lt;')}</p>`);
+    }
+  }
+}
+
+function getStarterTemplates(){
+  const now = Date.now();
+  const id = () => (crypto?.randomUUID?.() || Math.random().toString(36).slice(2));
+  return [
+    {
+      id: id(), ts: now,
+      title: "Morning Intention",
+      cat: "Daily",
+      text: `Focus for today: {one thing}\nWhy it matters: {short why}\nPrayer/Intention: {short line}`
+    },
+    {
+      id: id(), ts: now,
+      title: "Evening Review",
+      cat: "Daily",
+      text: `3 good things:\n- \n- \n- \nOne lesson:\nNext step:`
+    },
+    {
+      id: id(), ts: now,
+      title: "Weekly Reset",
+      cat: "Weekly",
+      text: `Wins:\n- \n- \n- \nChallenges:\n- \n- \n- \nGoals for next week:\n- \n- \n- `
+    },
+    {
+      id: id(), ts: now,
+      title: "Scripture Reflection (SOAP)",
+      cat: "Spiritual",
+      text: `S: {scripture}\nO: {observation}\nA: {application}\nP: {prayer}`
+    },
+    {
+      id: id(), ts: now,
+      title: "CBT Thought Record",
+      cat: "Mental Health",
+      text: `Situation:\nAutomatic Thought:\nEmotion (0–10):\nBehavior/Urge:\nEvidence for/against:\nBalanced Reframe:\nAction:`
+    },
+    {
+      id: id(), ts: now,
+      title: "Gratitude · 3x",
+      cat: "Gratitude",
+      text: `I’m grateful for…\n1)\n2)\n3)\nWhy these mattered today:`
+    },
+    {
+      id: id(), ts: now,
+      title: "Work Day Wrap",
+      cat: "Work",
+      text: `Top 3 progress today:\n1)\n2)\n3)\nBlocked by:\nOne next step tomorrow:`
+    }
+  ];
+}
+
+/* Existing listeners kept and extended */
+document.addEventListener('click', (e)=>{
+  if(e.target && e.target.id==='tplSave'){
+    const title=$('#tplTitle').value.trim(), cat=$('#tplCat').value, text=$('#tplText').value.trim();
+    if(!title || !text){ alert('Add a title and template text.'); return; }
+    templates.push({id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)), title, cat, text, ts:Date.now()});
+    save(K_TPL,templates);
+    ['tplTitle','tplText'].forEach(id=>$('#'+id).value='');
+    renderTemplates(); toast('Template saved ✅');
+  }
+  if(e.target && e.target.id==='tplClear'){ ['tplTitle','tplText'].forEach(id=>$('#'+id).value=''); }
+});
+
+
+/* --------------------------------- Library --------------------------------- */
+async function fileToDataURL(file){
+  return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(file); });
+}
+function renderLibrary(){
+  // prompts
+  const pHost=$('#libPromptList'); pHost.innerHTML='';
+  if(!(library.prompts||[]).length){ pHost.innerHTML='<p class="muted">No prompts yet.</p>'; }
+  library.prompts.slice().reverse().forEach((p,i)=>{
+    const d=document.createElement('div'); d.className='card';
+    d.innerHTML=`${p.replace(/</g,'&lt;')}
+      <div class="jc-row">
+        <button class="btn" data-puse="${i}">Use</button>
+        <button class="btn" data-pdel="${i}">Delete</button>
+      </div>`;
+    pHost.appendChild(d);
+  });
+
+  // quotes
+  const qHost=$('#libQuoteList'); qHost.innerHTML='';
+  if(!(library.quotes||[]).length){ qHost.innerHTML='<p class="muted">No quotes yet.</p>'; }
+  (library.quotes||[]).slice().reverse().forEach((q,i)=>{
+    const d=document.createElement('div'); d.className='card';
+    d.innerHTML=`“${q.q.replace(/</g,'&lt;')}” ${q.a?('— '+q.a.replace(/</g,'&lt;')):''}
+      <div class="jc-row"><button class="btn" data-qdel="${i}">Delete</button></div>`;
+    qHost.appendChild(d);
+  });
+
+  // photos
+  const ph=$('#libPhotoList'); ph.innerHTML='';
+  (library.photos||[]).slice().reverse().forEach((src,i)=>{
+    const img = new Image(); img.src = src; img.title='Photo';
+    img.style.cssText='width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--line)';
+    img.addEventListener('click', ()=> window.open(src, '_blank'));
+    const wrap = document.createElement('div'); wrap.style.position='relative';
+    wrap.appendChild(img);
+    const del = document.createElement('button'); del.className='btn'; del.textContent='Delete';
+    del.style.cssText='position:absolute;bottom:2px;left:2px';
+    del.addEventListener('click', ()=>{
+      library.photos.splice(library.photos.length-1-i,1); save(K_LIB,library); renderLibrary();
+    });
+    wrap.appendChild(del);
+    ph.appendChild(wrap);
+  });
+}
+document.addEventListener('click', async (e)=>{
+  if(e.target && e.target.id==='libPromptAdd'){
+    const p=$('#libPrompt').value.trim(); if(!p) return;
+    library.prompts.push(p); save(K_LIB,library); $('#libPrompt').value=''; renderLibrary(); toast('Prompt saved ✅');
+  }
+  if(e.target && e.target.id==='libPromptUse'){
+    const p=$('#libPrompt').value.trim(); if(!p) return;
+    if(getComputedStyle(document.querySelector('#guidedArea')).display!=='none'){
+      const g = document.querySelector('#g_lesson'); g.value = (g.value? g.value+'\n' : '') + p;
+    }else{
+      document.execCommand('insertHTML', false, `<p>${p.replace(/</g,'&lt;')}</p>`);
+    }
+    toast('Prompt inserted ✨');
+  }
+  if(e.target && e.target.id==='libQuoteAdd'){
+    const q=$('#libQuote').value.trim(); const a=$('#libAuthor').value.trim();
+    if(!q) return;
+    library.quotes.push({q,a}); save(K_LIB,library);
+    ['libQuote','libAuthor'].forEach(id=>$('#'+id).value=''); renderLibrary(); toast('Quote saved ✅');
+  }
+});
+$('#libPhotos').addEventListener('change', async ()=>{
+  const files=Array.from($('#libPhotos').files||[]);
+  for(const f of files){ if(!f.type.startsWith('image/')) continue; const data=await fileToDataURL(f); library.photos.push(data); }
+  save(K_LIB,library); renderLibrary(); $('#libPhotos').value='';
+  toast('Photos added ✅');
+});
+$('#libPromptList').addEventListener('click', (e)=>{
+  const iUse=e.target.getAttribute('data-puse'); const iDel=e.target.getAttribute('data-pdel');
+  if(iUse!=null){
+    const p=library.prompts[library.prompts.length-1-Number(iUse)];
+    if(getComputedStyle(document.querySelector('#guidedArea')).display!=='none'){
+      const g = document.querySelector('#g_lesson'); g.value = (g.value? g.value+'\n' : '') + p;
+    }
+    else { document.execCommand('insertHTML', false, `<p>${p.replace(/</g,'&lt;')}</p>`); }
+    toast('Prompt inserted ✨');
+  }
+  if(iDel!=null){
+    library.prompts.splice(library.prompts.length-1-Number(iDel),1); save(K_LIB,library); renderLibrary();
+  }
+});
+$('#libQuoteList').addEventListener('click', (e)=>{
+  const iDel=e.target.getAttribute('data-qdel');
+  if(iDel!=null){ library.quotes.splice(library.quotes.length-1-Number(iDel),1); save(K_LIB,library); renderLibrary(); }
+});
+
+/* ---------------------------------- Goals ---------------------------------- */
+function renderGoals(){
+  const box=$('#jgList'); box.innerHTML='';
+  if(!jgoals.length){ box.innerHTML='<p class="muted">No goals yet. Add one above.</p>'; return; }
+  jgoals.slice().reverse().forEach((g,idx)=>{
+    const wrap=document.createElement('div'); wrap.className='card';
+    wrap.innerHTML=`
+      <strong>${g.title}</strong> <span class="badge">${g.type}</span> ${g.date?`<span class="badge">${g.date}</span>`:''}
+      ${g.notes?`<p class="muted" style="margin:.3rem 0 0">${g.notes.replace(/</g,'&lt;')}</p>`:''}
+      <div class="jc-row" style="margin-top:6px">
+        <button class="btn" data-gdone="${idx}">Mark Done</button>
+        <button class="btn" data-gdel="${idx}">Delete</button>
+      </div>
+    `;
+    box.appendChild(wrap);
+  });
+  box.onclick=(e)=>{
+    const d=e.target.getAttribute('data-gdel'); const k=e.target.getAttribute('data-gdone');
+    if(d!=null){ jgoals.splice(jgoals.length-1-Number(d),1); save(K_GOALS,jgoals); renderGoals(); }
+    if(k!=null){ toast('🎉 Goal completed!'); jgoals.splice(jgoals.length-1-Number(k),1); save(K_GOALS,jgoals); renderGoals(); }
+  };
+}
+document.addEventListener('click', (e)=>{
+  if(e.target && e.target.id==='jgAdd'){
+    const title=$('#jgTitle').value.trim(); if(!title){ alert('Enter a goal title'); return; }
+    const type=$('#jgType').value; const date=$('#jgDate').value; const notes=$('#jgNotes').value.trim();
+    jgoals.push({id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)), title, type, date, notes, ts:Date.now()});
+    save(K_GOALS,jgoals);
+    ['jgTitle','jgNotes','jgDate'].forEach(id=>$('#'+id).value='');
+    renderGoals(); toast('Goal added ✅');
+  }
+  if(e.target && e.target.id==='jgClear'){ ['jgTitle','jgNotes','jgDate'].forEach(id=>$('#'+id).value=''); }
+});
+
+/* --------------------------------- Reviews --------------------------------- */
+function buildReview(days){
+  const cutoff = Date.now() - (Number(days)*86400000);
+  const list = entries.filter(e => new Date(e.date).getTime() >= cutoff);
+  if(!list.length) return 'No entries in this period.';
+
+  const emotions = {}, themes = {}, wins=[], lessons=[];
+  list.forEach(e=>{
+    (e.emotions||[]).forEach(x=> emotions[x]=(emotions[x]||0)+1);
+    if(e.theme) themes[e.theme]=(themes[e.theme]||0)+1;
+    const t = e.rich?stripHtml(e.text):(e.text||'');
+    if(t && /win|grati|good|progress/i.test(t)) wins.push(t);
+    if(t && /learn|lesson|reframe|next/i.test(t)) lessons.push(t);
+  });
+
+  const top = (obj, n=3)=>Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,n).map(x=>x[0]).join(', ')||'—';
+
+  return `Review of last ${days} days
+
+Top Emotions: ${top(emotions)}
+Top Themes: ${top(themes)}
+
+Highlights:
+- ${wins.slice(-3).map(x=>x.replace(/\n/g,' ')).join('\n- ') || '—'}
+
+Lessons / Next Steps:
+- ${lessons.slice(-3).map(x=>x.replace(/\n/g,' ')).join('\n- ') || '—'}
+`;
+}
+document.addEventListener('click', (e)=>{
+  if(e.target && e.target.id==='revGenerate'){
+    $('#revText').value = buildReview($('#revRange').value);
+  }
+  if(e.target && e.target.id==='revSave'){
+    const text = ($('#revText').value||'').trim(); if(!text){ alert('Nothing to save'); return; }
+    const data={ id:(crypto?.randomUUID?.()||Math.random().toString(36).slice(2)), date:new Date().toISOString().slice(0,10), theme:'Review', mood:3, energy:3, sleep:0, stress:3, emotions:['Reflective'], text, tags:['review'], extras:{}, photos:[], starred:false, ts:Date.now(), rich:false };
+    entries.push(data); save(K_ENTRIES,entries); renderEntries(); toast('Review saved as entry ✅');
+  }
+});
+
+/* ------------- Wire tab refreshes (ensure Insights shows data) ------------- */
+document.querySelectorAll('.page-tabs .tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    if(btn.dataset.tab==='insights') refreshInsights();
+    if(btn.dataset.tab==='templates') renderTemplates();
+    if(btn.dataset.tab==='library')   renderLibrary();
+    if(btn.dataset.tab==='goals')     renderGoals();
+  });
+});
+
+/* ------------------------------- First render ------------------------------ */
+function primeFilters(){
+  // build selects for filters from themes/emotions used so far
+  const filterEmotion=$('#filterEmotion'); const filterTheme=$('#filterTheme');
+  const emos=new Set(), ths=new Set();
+  entries.forEach(e=>{ (e.emotions||[]).forEach(x=>emos.add(x)); if(e.theme) ths.add(e.theme); });
+  filterEmotion.innerHTML = '<option value="">Emotion (any)</option>' + [...emos].map(x=>`<option>${x}</option>`).join('');
+  filterTheme.innerHTML   = '<option value="">Theme (any)</option>'   + [...ths].map(x=>`<option>${x}</option>`).join('');
+}
+primeFilters();
+renderEntries();
+refreshInsights();
+renderTemplates();
+renderLibrary();
+renderGoals();
+
+<!-- ====== JOURNAL TEMPLATE IMPORTER ====== -->
+
+(function(){
+  const key = 'lc_journal_templates_v1';
+  const existing = JSON.parse(localStorage.getItem(key) || '[]');
+  if(existing.length > 0){
+    console.log('Templates already exist — skipped import.');
+    return;
+  }
+  const now = Date.now();
+  const templates = [
+    {title:"Morning Intention",cat:"Daily",text:`Date: {YYYY-MM-DD}
+
+Focus for today: {one thing}
+Why it matters: {short why}
+One tiny action (≤5 min): {next step}
+Boundaries: {what I’ll say no to}
+Prayer/Intention: {short line}`},
+    {title:"Evening Review",cat:"Daily",text:`Date: {YYYY-MM-DD}
+
+3 good things:
+-
+-
+-
+What I learned:
+What challenged me:
+How I’ll be 1% better tomorrow:
+Gratitude (specific):`},
+    {title:"Five-Line Day",cat:"Daily",text:`Mood (1–5):
+Top emotion:
+Best moment:
+Hard moment:
+One step tomorrow:`},
+    {title:"Weekly Reset (Sun)",cat:"Weekly",text:`Wins this week:
+Stuck points:
+Habits kept / missed:
+People to encourage:
+Top 3 for next week:
+Scripture/Quote to carry:`},
+    {title:"Weekly Planning (Mon)",cat:"Weekly",text:`Theme for the week:
+Big rocks (max 3):
+Small pebbles (nice-to-do):
+One person to serve:
+One thing to learn:`},
+    {title:"Scripture Reflection (SOAP)",cat:"Spiritual",text:`S: {scripture}
+O: Observation (what it says):
+A: Application (to me today):
+P: Prayer:`},
+    {title:"Examen (Ignatian)",cat:"Spiritual",text:`Presence: Invite God’s light.
+Gratitude:
+Review the day:
+Consolations (life-giving):
+Desolations (draining):
+Resolve (tomorrow’s grace I seek):`},
+    {title:"Tiny Gratitude",cat:"Gratitude",text:`Sight I enjoyed:
+Sound I enjoyed:
+Taste I enjoyed:
+Touch I enjoyed:
+Smell I enjoyed:`},
+    {title:"Gratitude Reframe",cat:"Gratitude",text:`Hard thing:
+Hidden gift I can notice:
+Next small response:`},
+    {title:"Mood Check-in",cat:"Health",text:`Mood (1–5):
+Energy (1–5):
+Sleep hrs:
+Body sensation (where?):
+One regulation action (breathe, walk, water, text a friend):`},
+    {title:"CBT Thought Record",cat:"Mental Health",text:`Situation:
+Automatic thought:
+Emotion (1–100):
+Evidence for:
+Evidence against:
+Balanced thought:
+Action I’ll try:`},
+    {title:"ACT Control/Choice",cat:"Mental Health",text:`Out of my control:
+In my control:
+Value I’m choosing:
+Tiny action (today):`},
+    {title:"Daily Stand-Up",cat:"Work",text:`Yesterday:
+Today:
+Blocked by:
+One risk to flag:`},
+    {title:"Meeting Notes (Concise)",cat:"Work",text:`Meeting:
+Date/Time:
+Attendees:
+Decisions:
+Action items (owner → due):
+Notes:`},
+    {title:"Blameless Post-Mortem",cat:"Work",text:`What happened (timeline):
+Impact:
+What went well:
+What didn’t:
+Learning:
+Prevention / next steps:`},
+    {title:"Conversation Prep",cat:"Relationships",text:`Goal of the talk:
+My needs:
+Their needs (empathetic guess):
+Message (one sentence):
+Request (clear, doable):`},
+    {title:"Forgiveness Process",cat:"Relationships",text:`I feel hurt about:
+The cost to me has been:
+What I can release:
+Boundary going forward:`},
+    {title:"One Goal Plan (WOOP)",cat:"Goals",text:`Wish (specific):
+Outcome (feel/see):
+Obstacle (inner):
+Plan (if obstacle, then I will…):
+First 5-minute step:`},
+    {title:"Monthly Reflection",cat:"Reviews",text:`Highlights:
+Low-lights:
+Habits trend (⬆︎/⬇︎):
+Top 3 lessons:
+Focus for next month:`},
+    {title:"Year in Miniature",cat:"Reviews",text:`3 words for this year:
+Proud of:
+Grateful for:
+What I’m releasing:
+What I’m embracing next:`}
+  ].map(t => ({...t,id:crypto.randomUUID(),ts:now}));
+
+  localStorage.setItem(key, JSON.stringify(templates));
+  alert('✅ 20 journal templates loaded successfully!');
+})();
+</script>
+<script>
+  const current = location.pathname.split('/').pop();
+  document.querySelectorAll('nav a').forEach(link => {
+    if (link.getAttribute('href') === current) {
+      link.classList.add('active');
+    }
+  });
+</script>
+<!-- ====== END IMPORTER ====== -->
+</body>
+</html>
