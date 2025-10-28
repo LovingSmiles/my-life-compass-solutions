@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Temple Fellowship Network</title>
+  <meta name="robots" content="noindex" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Quotes -->
+  <script defer src="js/quotes.js"></script>
+
+  <style>
+    /* Smooth fade for quotes */
+    #quote, #source {
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+    }
+
+    /* Gentle fade-in for side images */
+    .side-img {
+      animation: fadeIn 2s ease forwards;
+      opacity: 0;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-b from-red-700 via-white to-blue-900 text-black min-h-screen flex flex-col">
+
+  <!-- NAVIGATION -->
+  <nav class="w-full bg-gradient-to-r from-red-700 via-white to-blue-900 border-b-4 border-white flex flex-wrap justify-center p-3">
+    <a href="../index.html" class="bg-white text-black font-bold border border-black rounded-md px-4 py-2 m-1 hover:bg-red-700 hover:text-white transition"></a>>🏠 Back to Main Home</a>
+    <a href="index.html" class="bg-white text-black font-bold border border-black rounded-md px-4 py-2 m-1 hover:bg-red-700 hover:text-white transition">Home</a>
+    <a href="temples.html" class="bg-white text-black font-bold border border-black rounded-md px-4 py-2 m-1 hover:bg-red-700 hover:text-white transition">Temples</a>
+    <a href="trips.html" class="bg-white text-black font-bold border border-black rounded-md px-4 py-2 m-1 hover:bg-red-700 hover:text-white transition">Trips</a>
+    <a href="join-trip.html" class="bg-white text-black font-bold border border-black rounded-md px-4 py-2 m-1 hover:bg-red-700 hover:text-white transition">Start a Trip</a>
+    <a href="photos.html" class="bg-white text-black font-bold border border-black rounded-md px-4 py-2 m-1 hover:bg-red-700 hover:text-white transition">Gallery</a>
+    <a href="news.html" class="bg-white text-black font-bold border border-black rounded-md px-4 py-2 m-1 hover:bg-red-700 hover:text-white transition">Temple Visits</a>
+  
+  </nav>
+
+  
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 max-w-3xl">
+      
+      <!-- HEADER -->
+      <header class="bg-white/90 rounded-xl shadow-lg p-6 my-6 text-center">
+        <h1 class="text-2xl sm:text-3xl font-bold">Temple Fellowship Network</h1>
+        <p class="text-gray-700 mt-2">Find fellowship. Share a ride. Worship together.</p>
+      </header>
+
+      <!-- DAILY INSPIRATION -->
+      <section class="bg-white/90 rounded-xl shadow-lg p-6 my-6 text-center">
+        <h2 class="text-xl font-semibold border-b-2 border-black pb-2 mb-3">Daily Inspiration</h2>
+        <p id="quote" class="italic text-lg text-black">Loading quote...</p>
+        <p id="source" class="font-bold text-black mt-1"></p>
+        <p class="text-sm text-gray-600 mt-2">Quotes from OUR favorite leaders ✨</p>
+      </section>
+
+      <!-- MISSION -->
+      <section class="bg-white/90 rounded-xl shadow-lg p-6 my-6">
+        <h2 class="text-xl font-semibold border-b-2 border-black pb-2 mb-3 text-center">Our Mission</h2>
+        <p class="text-gray-800 leading-relaxed">
+          Helping brothers and sisters around the world find companionship in temple worship—organizing trips,
+          rides, and post-session meals or hikes. A simple, peaceful alternative to social media: a place to gather
+          and go to the temple together.
+        </p>
+        <div class="flex flex-wrap justify-center gap-4 mt-5">
+          <a href="trips.html" class="bg-black text-white font-semibold rounded-lg px-5 py-2 hover:bg-red-700 hover:text-white transition">View Trips</a>
+          <a href="join-trip.html" class="bg-black text-white font-semibold rounded-lg px-5 py-2 hover:bg-red-700 hover:text-white transition">Start a Trip</a>
+        </div>
+      </section>
+
+    </main>
+
+    
+
+  <!-- FOOTER -->
+  <footer class="bg-white/90 border-t-4 border-black text-black text-center py-4 w-full">
+    <p class="font-medium">Created by LovingSmiles • My Life Compass Solutions</p>
+  </footer>
+
+  <script>
+    // Fade in once quote loads
+    document.addEventListener("DOMContentLoaded", () => {
+      const quote = document.getElementById("quote");
+      const source = document.getElementById("source");
+
+      function fadeIn() {
+        quote.style.opacity = 1;
+        source.style.opacity = 1;
+      }
+
+      setTimeout(fadeIn, 500);
+    });
+  </script>
+</body>
+</html>

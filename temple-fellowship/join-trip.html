@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Start a Trip • Temple Fellowship Network</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="css/patriotic.css" />
+  <script defer src="js/temple-data.js"></script>
+  <script defer src="js/trips.js"></script>
+</head>
+<body>
+  <!-- NAVIGATION -->
+  <nav class="w-full bg-gradient-to-r from-red-700 via-white to-blue-900 border-b-4 border-white flex flex-wrap justify-center p-3">
+    <a href="index.html" class="bg-white text-black font-bold border border-black rounded-md px-4 py-2 m-1 hover:bg-red-700 hover:text-white transition">Home</a>
+    <a href="temples.html" class="bg-white text-black font-bold border border-black rounded-md px-4 py-2 m-1 hover:bg-red-700 hover:text-white transition">Temples</a>
+    <a href="trips.html" class="bg-white text-black font-bold border border-black rounded-md px-4 py-2 m-1 hover:bg-red-700 hover:text-white transition">Trips</a>
+    <a href="join-trip.html" class="bg-white text-black font-bold border border-black rounded-md px-4 py-2 m-1 hover:bg-red-700 hover:text-white transition">Start a Trip</a>
+    <a href="photos.html" class="bg-white text-black font-bold border border-black rounded-md px-4 py-2 m-1 hover:bg-red-700 hover:text-white transition">Gallery</a>
+    <a href="news.html" class="bg-white text-black font-bold border border-black rounded-md px-4 py-2 m-1 hover:bg-red-700 hover:text-white transition">Temple Visits</a>
+  
+  </nav>
+
+  <div class="container">
+    <header class="card center">
+      <h1>Start a Temple Trip</h1>
+      <p>Fill in the details and it will appear on the Trips page.</p>
+    </header>
+
+
+
+    <section class="card">
+      <form id="trip-form">
+        <label>Trip Title</label>
+        <input class="input" id="title" placeholder="e.g., Saturday Morning Manti Session" required />
+
+        <label>Temple</label>
+        <select class="input" id="temple" required>
+          <option value="">Select a Temple</option>
+        </select>
+
+        <label>Date & Time</label>
+        <input class="input" id="datetime" type="datetime-local" required />
+
+        <label>Notes (ride share, meal, hike, etc.)</label>
+        <textarea class="input" id="notes" rows="4" placeholder="Carpool from Midvale at 4:30 AM; breakfast after."></textarea>
+
+        <button class="btn" type="submit">Create Trip</button>
+      </form>
+    </section>
+
+    <footer class="footer">
+      <p>Created by LovingSmiles • My Life Compass Solutions</p>
+    </footer>
+  </div>
+
+  <script>
+    // Populate temple dropdown
+    document.addEventListener('DOMContentLoaded', () => {
+      const sel = document.getElementById('temple');
+      TEMPLE_DATA.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.name;
+        opt.textContent = `${t.name} — ${t.city}, ${t.country}`;
+        sel.appendChild(opt);
+      });
+
+      const form = document.getElementById('trip-form');
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const trip = {
+          id: 't_' + Date.now(),
+          title: document.getElementById('title').value.trim(),
+          temple: document.getElementById('temple').value,
+          datetime: document.getElementById('datetime').value,
+          notes: document.getElementById('notes').value.trim()
+        };
+        addTrip(trip);              // from trips.js
+        window.location.href = 'trips.html';
+      });
+    });
+  </script>
+</body>
+</html>

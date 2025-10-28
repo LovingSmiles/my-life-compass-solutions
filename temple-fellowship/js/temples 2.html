@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Temples • Temple Fellowship Network</title>
+  <meta name="robots" content="noindex" />
+
+  <!-- Leaflet Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(to bottom, #b22222, #ffffff, #002868);
+      margin: 0;
+      padding: 0;
+      color: #000;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    nav {
+      background: linear-gradient(to right, #b22222, #ffffff, #002868);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 10px;
+      border-bottom: 4px solid #fff;
+    }
+    nav a {
+      background: #fff;
+      color: #000;
+      font-weight: bold;
+      text-decoration: none;
+      border: 1px solid #000;
+      border-radius: 6px;
+      margin: 6px;
+      padding: 8px 14px;
+      transition: 0.2s;
+    }
+    nav a:hover, nav a.active { background: #b22222; color: #fff; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 20px; width: 100%; }
+    .card {
+      background: rgba(255,255,255,0.9);
+      border: 2px solid #000;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+    }
+    .center { text-align: center; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 15px;
+    }
+    .input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0 14px;
+      border: 1px solid #000;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    #map {
+      width: 100%;
+      height: 520px;
+      border-radius: 10px;
+      border: 2px solid #000;
+      margin-top: 10px;
+    }
+    .footer {
+      text-align: center;
+      padding: 16px;
+      background: rgba(255,255,255,0.9);
+      border-top: 4px solid #000;
+      margin-top: auto;
+      font-size: 14px;
+    }
+    button.log-btn {
+      background: #000;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: 0.2s;
+    }
+    button.log-btn:hover { background: #b22222; }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="temples.html" class="active">Temples</a>
+    <a href="trips.html">Trips</a>
+    <a href="join-trip.html">Start a Trip</a>
+    <a href="photos.html">Gallery</a>
+    <a href="news.html">Temple Visits</a>
+  </nav>
+
+  <div class="container">
+    <header class="card center">
+      <h1>Temples</h1>
+      <p>Search or filter by region, country, and state. Explore on the map and log your temple visits.</p>
+    </header>
+
+    <section class="card">
+      <label for="search">Search</label>
+      <input id="search" class="input" placeholder="e.g., Manti, Provo, Lima, Rome..." />
+
+      <label for="region">Region</label>
+      <select id="region" class="input">
+        <option value="">All Regions</option>
+      </select>
+
+      <label for="country">Country</label>
+      <select id="country" class="input">
+        <option value="">All Countries</option>
+      </select>
+
+      <label for="state" id="state-label" style="display:none;">State (USA only)</label>
+      <select id="state" class="input" style="display:none;">
+        <option value="">All States</option>
+      </select>
+    </section>
+
+    <section class="card center">
+      <h2>Temple Map</h2>
+      <p>Click any marker for details or to log a visit.</p>
+      <div id="map"></div>
+      <p style="margin-top:10px;">Total Visits Logged: <strong id="total-visits">0</strong></p>
+    </section>
+
+    <section id="temple-list" class="grid" aria-live="polite"></section>
+
+    <footer class="footer">
+      <p>Created by LovingSmiles • My Life Compass Solutions</p>
+    </footer>
+  </div>
+
+  <script>
+    /********************
+     * Global Temple Data (short sample, add full list here)
+     ********************/
+    const TEMPLE_DATA = [
+      { name: "Salt Lake Temple", city: "Salt Lake City", state: "Utah", country: "USA", region: "North America", status: "🔴 Closed for Renovation", lat: 40.7707, lng: -111.8910, slug: "salt-lake-temple" },
+      { name: "Manti Utah Temple", city: "Manti", state: "Utah", country: "USA", region: "North America", status: "🟢 Operating", lat: 39.2674, lng: -111.6364, slug: "manti-utah-temple" },
+      { name: "Rome Italy Temple", city: "Rome", country: "Italy", region: "Europe", status: "🟢 Operating", lat: 41.951, lng: 12.61, slug: "rome-italy-temple" },
+      { name: "Tokyo Japan Temple", city: "Tokyo", country: "Japan", region: "Asia", status: "🟢 Operating", lat: 35.662, lng: 139.737, slug: "tokyo-japan-temple" },
+      { name: "Johannesburg South Africa Temple", city: "Johannesburg", country: "South Africa", region: "Africa", status: "🟢 Operating", lat: -26.204, lng: 28.047, slug: "johannesburg-south-africa-temple" }
+    ];
+
+    /********************
+     * Interactive Filters + Map + Visits
+     ********************/
+    document.addEventListener("DOMContentLoaded", () => {
+      const regionSel = document.getElementById("region");
+      const countrySel = document.getElementById("country");
+      const stateSel = document.getElementById("state");
+      const stateLabel = document.getElementById("state-label");
+      const listEl = document.getElementById("temple-list");
+      const search = document.getElementById("search");
+      const totalEl = document.getElementById("total-visits");
+
+      const regions = [...new Set(TEMPLE_DATA.map(t => t.region))].sort();
+      regions.forEach(r => regionSel.insertAdjacentHTML("beforeend", `<option>${r}</option>`));
+
+      const map = L.map("map").setView([20,0],2);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap contributors"
+      }).addTo(map);
+
+      const visits = JSON.parse(localStorage.getItem("templeVisits") || "{}");
+      const markers = [];
+      let currentItems = [...TEMPLE_DATA];
+
+      function updateTotal(){
+        totalEl.textContent = Object.values(visits).reduce((a,b)=>a+b,0);
+      }
+      function saveVisits(){
+        localStorage.setItem("templeVisits", JSON.stringify(visits));
+        updateTotal();
+      }
+      function logVisit(slug, name){
+        if(!visits[slug]) visits[slug]=0;
+        visits[slug]++;
+        saveVisits();
+        alert(`✅ Visit logged for ${name}`);
+        render(currentItems);
+      }
+
+      function clearMarkers(){ markers.forEach(m => map.removeLayer(m)); markers.length=0; }
+      function addMarker(t){
+        if(typeof t.lat!=="number")return;
+        const marker=L.marker([t.lat,t.lng]).addTo(map).bindPopup(`
+          <b>${t.name}</b><br>${[t.city,t.state,t.country].filter(Boolean).join(", ")}<br>${t.status}<br>
+          <button class='log-btn' onclick="logVisit('${t.slug}','${t.name}')">Log Visit</button>
+        `);
+        markers.push(marker);
+      }
+
+      window.logVisit = logVisit;
+
+      function render(items){
+        clearMarkers();
+        listEl.innerHTML="";
+        items.forEach(t=>{
+          const vCount = visits[t.slug] || 0;
+          listEl.innerHTML += `
+            <div class="card">
+              <h3>${t.name}</h3>
+              <p>${[t.city,t.state,t.country].filter(Boolean).join(", ")}</p>
+              <p><strong>Status:</strong> ${t.status}</p>
+              <p><strong>Visits:</strong> ${vCount}</p>
+              <button class="log-btn" onclick="logVisit('${t.slug}','${t.name}')">Log Visit</button>
+            </div>`;
+          addMarker(t);
+        });
+      }
+
+      function applyFilter(){
+        const q = search.value.toLowerCase();
+        const r = regionSel.value;
+        const c = countrySel.value;
+        const s = stateSel.value;
+        currentItems = TEMPLE_DATA.filter(t=>{
+          const hay=[t.name,t.city,t.state,t.country].join(" ").toLowerCase();
+          const matchQ=!q||hay.includes(q);
+          const matchR=!r||t.region===r;
+          const matchC=!c||t.country===c;
+          const matchS=!s||t.state===s;
+          return matchQ&&matchR&&matchC&&matchS;
+        });
+        render(currentItems);
+      }
+
+      regionSel.addEventListener("change", ()=>{
+        const region = regionSel.value;
+        const countries = [...new Set(TEMPLE_DATA.filter(t=>!region||t.region===region).map(t=>t.country))].sort();
+        countrySel.innerHTML = `<option value="">All Countries</option>` + countries.map(c=>`<option>${c}</option>`).join("");
+        stateSel.style.display = stateLabel.style.display = "none";
+        applyFilter();
+      });
+
+      countrySel.addEventListener("change", ()=>{
+        if(countrySel.value==="USA"){
+          const states = [...new Set(TEMPLE_DATA.filter(t=>t.country==="USA").map(t=>t.state))].sort();
+          stateSel.innerHTML = `<option value="">All States</option>` + states.map(s=>`<option>${s}</option>`).join("");
+          stateSel.style.display = stateLabel.style.display = "block";
+        } else {
+          stateSel.style.display = stateLabel.style.display = "none";
+        }
+        applyFilter();
+      });
+
+      stateSel.addEventListener("change", applyFilter);
+      search.addEventListener("input", applyFilter);
+
+      render(currentItems);
+      updateTotal();
+    });
+  </script>
+</body>
+</html>

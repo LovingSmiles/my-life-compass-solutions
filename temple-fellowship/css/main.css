@@ -1,0 +1,78 @@
+:root{
+    --temple-gold:#d4af37;
+    --sky-blue:#98c1d9;
+    --cloud:#f8f9fa;
+    --ink:#222;
+    --accent:#3c6e71;
+  }
+  
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: linear-gradient(180deg, #ffffff, #eef6fb);
+    color: var(--ink);
+  }
+  
+  nav{
+    position: sticky; top:0; z-index:10;
+    background: linear-gradient(90deg, var(--sky-blue), #fff, var(--temple-gold));
+    border-bottom: 2px solid #fff;
+    display:flex; gap:8px; justify-content:center; flex-wrap:wrap;
+    padding: 10px 12px;
+  }
+  
+  nav a{
+    text-decoration:none; color:#000; font-weight:600;
+    background:#fff; padding:8px 14px; border-radius:8px;
+    border:1px solid #000; transition:.25s;
+  }
+  nav a:hover{ background:var(--accent); color:#fff }
+  nav a.active{ background:var(--temple-gold); color:#000; box-shadow:0 0 8px rgba(0,0,0,.15) }
+  
+  .container{
+    width:min(100%, 960px);
+    margin: 20px auto; padding: 0 16px;
+  }
+  
+  .card{
+    background:rgba(255,255,255,.98);
+    border:1px solid #ddd; border-radius:12px;
+    padding:18px; margin:16px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  
+  h1,h2{ margin: 10px 0 6px }
+  h1{ font-size: clamp(1.6rem, 3.5vw, 2.2rem) }
+  h2{ font-size: clamp(1.2rem, 3vw, 1.6rem) }
+  
+  .btn{
+    display:inline-block; text-decoration:none; cursor:pointer;
+    background:#000; color:#fff; padding:10px 16px; border-radius:10px;
+    font-weight:700; border:1px solid #000; transition:.25s;
+  }
+  .btn:hover{ background:var(--temple-gold); color:#000; transform: translateY(-1px) }
+  
+  .grid{
+    display:grid; gap:16px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+  
+  .input, select, textarea{
+    width:100%; padding:10px 12px; border:1px solid #bbb; border-radius:10px;
+    font-size:1rem; margin:6px 0 12px; background:#fff;
+  }
+  label{ font-weight:700; display:block; margin-top:8px }
+  
+  .footer{
+    margin: 30px auto 60px; text-align:center; color:#333;
+    padding: 14px 10px; border-top:1px solid #eee;
+  }
+  
+  .quote{ opacity:0; transition: opacity .6s ease }
+  .source{ opacity:0; transition: opacity .6s ease; font-weight:700 }
+  .center{text-align:center}
+  
+  .media-card img, .media-card video{
+    width:100%; height:200px; object-fit:cover; border-radius:10px; border:1px solid #ddd;
+  }
+  .small{ font-size:.9rem; color:#555 }

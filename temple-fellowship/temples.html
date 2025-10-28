@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Temples • Temple Fellowship Network</title>
+  <meta name="robots" content="noindex" />
+
+  <!-- Leaflet Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <!-- Regional Temple Data (lowercase variable versions) -->
+  <!-- ✅ Correct paths -->
+  <script src="js/temple-data-north-america-us.js" defer></script>
+  <script src="js/temple-data-north-america-canada.js" defer></script>
+  <script src="js/temple-data-north-america-latin.js" defer></script><script src="js/temple-data-south-america.js" defer></script>
+<script src="js/temple-data-europe.js" defer></script>
+<script src="js/temple-data-africa.js" defer></script>
+<script src="js/temple-data-asia.js" defer></script>
+<script src="js/temple-data-oceania.js" defer></script>
+<script src="js/temples.js" defer></script>
+
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(to bottom, #b22222, #ffffff, #002868);
+      margin: 0;
+      padding: 0;
+      color: #000;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    nav {
+      background: linear-gradient(to right, #b22222, #ffffff, #002868);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 10px;
+      border-bottom: 4px solid #fff;
+    }
+    nav a {
+      background: #fff;
+      color: #000;
+      font-weight: bold;
+      text-decoration: none;
+      border: 1px solid #000;
+      border-radius: 6px;
+      margin: 6px;
+      padding: 8px 14px;
+      transition: 0.2s;
+    }
+    nav a:hover, nav a.active { background: #b22222; color: #fff; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 20px; width: 100%; }
+    .card {
+      background: rgba(255,255,255,0.9);
+      border: 2px solid #000;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+    }
+    .center { text-align: center; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 15px;
+    }
+    .input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0 14px;
+      border: 1px solid #000;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    #map {
+      width: 100%;
+      height: 520px;
+      border-radius: 10px;
+      border: 2px solid #000;
+      margin-top: 10px;
+    }
+    .footer {
+      text-align: center;
+      padding: 16px;
+      background: rgba(255,255,255,0.9);
+      border-top: 4px solid #000;
+      margin-top: auto;
+      font-size: 14px;
+    }
+    button.log-btn {
+      background: #000;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: 0.2s;
+    }
+    button.log-btn:hover { background: #b22222; }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="temples.html" class="active">Temples</a>
+    <a href="trips.html">Trips</a>
+    <a href="join-trip.html">Start a Trip</a>
+    <a href="photos.html">Gallery</a>
+    <a href="news.html">Temple Visits</a>
+  </nav>
+
+  <div class="container">
+    <header class="card center">
+      <h1>Temples</h1>
+      <p>Search or filter by region, country, and state. Explore on the map and log your temple visits.</p>
+    </header>
+
+    <section class="card">
+      <label for="search">Search</label>
+      <input id="search" class="input" placeholder="e.g., Manti, Provo, Lima, Rome..." />
+
+      <label for="region">Region</label>
+      <select id="region" class="input">
+        <option value="">All Regions</option>
+      </select>
+
+      <label for="country">Country</label>
+      <select id="country" class="input">
+        <option value="">All Countries</option>
+      </select>
+
+      <label for="state" id="state-label" style="display:none;">State (USA only)</label>
+      <select id="state" class="input" style="display:none;">
+        <option value="">All States</option>
+      </select>
+    </section>
+
+    <section class="card center">
+      <h2>Temple Map</h2>
+      <p>Click any marker for details or to log a visit.</p>
+      <div id="map"></div>
+      <p style="margin-top:10px;">Total Visits Logged: <strong id="total-visits">0</strong></p>
+    </section>
+ 
+    <!-- Temple Visit History Section -->
+    <div id="lastVisitDisplay">Loading temple visit info...</div>
+
+    <section id="templeVisitLog" class="card">
+      <h2 style="text-align:center;">🗓️ Temple Visit Log</h2>
+      <div id="visitHistory"></div>
+      <button class="clear-log-btn" onclick="clearTempleLog()">Clear All Logs</button>
+    </section>
+    
+    <section id="temple-list" class="grid" aria-live="polite"></section>
+
+    <footer class="footer">
+      <p>Created by LovingSmiles • My Life Compass Solutions</p>
+    </footer>
+  </div>
+
+  <!-- Main logic -->
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // ✅ Combine all lowercase temple data
+    const TEMPLE_DATA = [].concat(
+  window.temple_data_north_america_us || [],
+  window.temple_data_north_america_canada || [],   // if you also keep the non-US NA file
+  window.temple_data_north_america_latin || [],
+  window.temple_data_south_america || [],
+  window.temple_data_europe || [],
+  window.temple_data_africa || [],
+  window.temple_data_asia || [],
+  window.temple_data_oceania || []
+);
+    const regionSel = document.getElementById("region");
+    const countrySel = document.getElementById("country");
+    const stateSel = document.getElementById("state");
+    const stateLabel = document.getElementById("state-label");
+    const listEl = document.getElementById("temple-list");
+    const search = document.getElementById("search");
+    const totalEl = document.getElementById("total-visits");
+
+    const regions = [...new Set(TEMPLE_DATA.map(t => t.region))].sort();
+    regions.forEach(r => regionSel.insertAdjacentHTML("beforeend", `<option>${r}</option>`));
+
+    const map = L.map("map").setView([20, 0], 2);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(map);
+
+    const visits = JSON.parse(localStorage.getItem("templeVisits") || "{}");
+    const markers = [];
+    let currentItems = [...TEMPLE_DATA];
+
+    function updateTotal() {
+      totalEl.textContent = Object.values(visits).reduce((a, b) => a + b, 0);
+    }
+    function saveVisits() {
+      localStorage.setItem("templeVisits", JSON.stringify(visits));
+      updateTotal();
+    }
+    function logVisit(slug, name) {
+      if (!visits[slug]) visits[slug] = 0;
+      visits[slug]++;
+      saveVisits();
+      recordTempleVisit(name); // 🔗 Also log date/time
+      render(currentItems);
+    }
+
+    window.logVisit = logVisit;
+
+    function clearMarkers() {
+      markers.forEach(m => map.removeLayer(m));
+      markers.length = 0;
+    }
+
+    function addMarker(t) {
+      if (typeof t.lat !== "number" || typeof t.lng !== "number") return;
+      const marker = L.marker([t.lat, t.lng]).addTo(map).bindPopup(`
+        <b>${t.name}</b><br>
+        ${[t.city, t.state, t.country].filter(Boolean).join(", ")}<br>
+        ${t.status || ""}<br>
+        <button class='log-btn' onclick="logVisit('${t.slug}','${t.name}')">Log Visit</button>
+      `);
+      markers.push(marker);
+    }
+
+    function render(items) {
+      clearMarkers();
+      listEl.innerHTML = "";
+      const coords = [];
+
+      items.forEach(t => {
+        const vCount = visits[t.slug] || 0;
+        listEl.innerHTML += `
+          <div class="card">
+            <h3>${t.name}</h3>
+            <p>${[t.city, t.state, t.country].filter(Boolean).join(", ")}</p>
+            <p><strong>Status:</strong> ${t.status}</p>
+            <p><strong>Visits:</strong> ${vCount}</p>
+            <button class="log-btn" onclick="logVisit('${t.slug}','${t.name}')">Log Visit</button>
+          </div>`;
+        addMarker(t);
+        if (typeof t.lat === "number" && typeof t.lng === "number")
+          coords.push([t.lat, t.lng]);
+      });
+
+      if (coords.length) map.fitBounds(coords, { padding: [40, 40] });
+    }
+
+    function applyFilter() {
+      const q = search.value.toLowerCase();
+      const r = regionSel.value;
+      const c = countrySel.value;
+      const s = stateSel.value;
+      currentItems = TEMPLE_DATA.filter(t => {
+        const hay = [t.name, t.city, t.state, t.country].join(" ").toLowerCase();
+        const matchQ = !q || hay.includes(q);
+        const matchR = !r || t.region === r;
+        const matchC = !c || t.country === c;
+        const matchS = !s || t.state === s;
+        return matchQ && matchR && matchC && matchS;
+      });
+      render(currentItems);
+    }
+
+    regionSel.addEventListener("change", () => {
+      const region = regionSel.value;
+      const countries = [...new Set(TEMPLE_DATA.filter(t => !region || t.region === region).map(t => t.country))].sort();
+      countrySel.innerHTML = `<option value="">All Countries</option>` + countries.map(c => `<option>${c}</option>`).join("");
+      stateSel.style.display = stateLabel.style.display = "none";
+      applyFilter();
+    });
+
+    countrySel.addEventListener("change", () => {
+      if (countrySel.value === "USA") {
+        const states = [...new Set(TEMPLE_DATA.filter(t => t.country === "USA").map(t => t.state))].sort();
+        stateSel.innerHTML = `<option value="">All States</option>` + states.map(s => `<option>${s}</option>`).join("");
+        stateSel.style.display = stateLabel.style.display = "block";
+      } else {
+        stateSel.style.display = stateLabel.style.display = "none";
+      }
+      applyFilter();
+    });
+
+    stateSel.addEventListener("change", applyFilter);
+    search.addEventListener("input", applyFilter);
+
+    render(currentItems);
+    updateTotal();
+  });
+  </script>
+  <link rel="stylesheet" href="css/temple-log.css">
+  <script src="js/temple-log.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Temple Visit Journal • Temple Fellowship Network</title>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/patriotic.css" />
+  <link rel="stylesheet" href="assets/lcp-nav.css" />
+  <script src="assets/lcp-nav.js" defer></script>
+
+  <style>
+    main {
+      max-width: 800px;
+      margin: 2rem auto;
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+    }
+
+    h1 {
+      text-align: center;
+      color: #111;
+      margin-bottom: 1rem;
+    }
+
+    .entry {
+      border-bottom: 1px solid #ccc;
+      padding: 0.75rem 0;
+    }
+
+    .entry:last-child {
+      border-bottom: none;
+    }
+
+    .entry h3 {
+      margin: 0 0 0.25rem;
+      color: #1e3a8a;
+    }
+
+    textarea {
+      width: 100%;
+      border: 1px solid #aaa;
+      border-radius: 6px;
+      padding: 0.5rem;
+      font-size: 0.9rem;
+      margin-top: 0.25rem;
+      resize: vertical;
+    }
+
+    .btn {
+      display: inline-block;
+      margin: 0.5rem 0.25rem;
+      background: #2563eb;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: #1e3a8a;
+    }
+
+    #export-buttons {
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    #no-visits {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-b from-red-700 via-white to-blue-900 text-black min-h-screen">
+
+  <!-- NAV -->
+  <nav class="w-full bg-gradient-to-r from-red-700 via-white to-blue-900 border-b-4 border-white flex flex-wrap justify-center p-3">
+    <a href="index.html" class="bg-white text-black font-bold border border-black rounded-md px-4 py-2 m-1">Home</a>
+    <a href="temples.html" class="bg-white text-black font-bold border border-black rounded-md px-4 py-2 m-1">Temples</a>
+    <a href="visits.html" class="bg-white text-black font-bold border border-black rounded-md px-4 py-2 m-1">My Visits</a>
+  </nav>
+
+  <main>
+    <h1>My Temple Visit Journal</h1>
+    <p class="text-center">Record your temple experiences, track visits, and reflect on your spiritual journey.</p>
+
+    <section id="visit-list"></section>
+
+    <div id="export-buttons">
+      <button class="btn" id="export-txt">📄 Export as Text</button>
+      <button class="btn" id="export-json">💾 Export as JSON</button>
+    </div>
+  </main>
+
+  <script src="js/temple-data.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const listEl = document.getElementById("visit-list");
+
+      // Load visit data
+      const visits = JSON.parse(localStorage.getItem("templeVisits") || "{}");
+      const journal = JSON.parse(localStorage.getItem("templeJournal") || "{}");
+
+      function saveJournal() {
+        localStorage.setItem("templeJournal", JSON.stringify(journal));
+      }
+
+      function renderVisits() {
+        listEl.innerHTML = "";
+        const entries = Object.entries(visits);
+        if (!entries.length) {
+          listEl.innerHTML = '<p id="no-visits">You haven’t logged any temple visits yet. Go to the <a href="temples.html">Temples Map</a> to start!</p>';
+          return;
+        }
+
+        // Sort by count (most visited first)
+        entries.sort((a, b) => b[1] - a[1]);
+
+        entries.forEach(([slug, count]) => {
+          const temple = TEMPLE_DATA.find(t => t.slug === slug);
+          const name = temple ? temple.name : slug;
+          const notes = journal[slug]?.notes || "";
+          const date = journal[slug]?.lastDate || new Date().toLocaleDateString();
+
+          const div = document.createElement("div");
+          div.className = "entry";
+          div.innerHTML = `
+            <h3>${name}</h3>
+            <p><strong>Total Visits:</strong> ${count}</p>
+            <p><strong>Last Visit:</strong> ${date}</p>
+            <label>Notes:</label>
+            <textarea data-slug="${slug}" placeholder="Write your thoughts or experiences...">${notes}</textarea>
+            <div>
+              <button class="btn save-btn" data-slug="${slug}">💾 Save</button>
+              <button class="btn delete-btn" data-slug="${slug}">🗑️ Delete</button>
+            </div>
+          `;
+          listEl.appendChild(div);
+        });
+
+        // Add listeners
+        document.querySelectorAll(".save-btn").forEach(btn => {
+          btn.addEventListener("click", e => {
+            const slug = e.target.dataset.slug;
+            const textarea = document.querySelector(`textarea[data-slug='${slug}']`);
+            journal[slug] = {
+              notes: textarea.value.trim(),
+              lastDate: new Date().toLocaleDateString()
+            };
+            saveJournal();
+            alert("💾 Journal entry saved!");
+          });
+        });
+
+        document.querySelectorAll(".delete-btn").forEach(btn => {
+          btn.addEventListener("click", e => {
+            const slug = e.target.dataset.slug;
+            if (confirm("Delete this temple from your journal?")) {
+              delete visits[slug];
+              delete journal[slug];
+              localStorage.setItem("templeVisits", JSON.stringify(visits));
+              saveJournal();
+              renderVisits();
+            }
+          });
+        });
+      }
+
+      // Export data
+      document.getElementById("export-txt").addEventListener("click", () => {
+        let text = "My Temple Visit Journal\n\n";
+        for (const [slug, entry] of Object.entries(journal)) {
+          const temple = TEMPLE_DATA.find(t => t.slug === slug);
+          const name = temple ? temple.name : slug;
+          const count = visits[slug] || 0;
+          text += `Temple: ${name}\nVisits: ${count}\nLast Visit: ${entry.lastDate}\nNotes: ${entry.notes}\n\n`;
+        }
+
+        const blob = new Blob([text], { type: "text/plain" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "TempleJournal.txt";
+        a.click();
+      });
+
+      document.getElementById("export-json").addEventListener("click", () => {
+        const exportData = { visits, journal };
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "TempleJournal.json";
+        a.click();
+      });
+
+      renderVisits();
+    });
+  </script>
+</body>
+</html>
