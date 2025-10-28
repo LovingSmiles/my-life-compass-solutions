@@ -1,0 +1,142 @@
+/* patriotic.css — red, white, and blue theme */
+
+:root {
+  --flag-red: #b22234;
+  --flag-blue: #3c3b6e;
+  --flag-white: #ffffff;
+  --nav-border: #fff;
+  --text: #000;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: "Arial", sans-serif;
+  background: linear-gradient(180deg, var(--flag-red), var(--flag-white), var(--flag-blue));
+  background-attachment: fixed;
+  background-size: cover;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+/* ----- Navigation Bar ----- */
+nav {
+  width: 100%;
+  background: linear-gradient(90deg, var(--flag-red), var(--flag-white), var(--flag-blue));
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 10px 0;
+  border-bottom: 3px solid var(--nav-border);
+}
+
+nav a {
+  text-decoration: none;
+  color: var(--text);
+  font-weight: bold;
+  background: var(--flag-white);
+  padding: 8px 14px;
+  margin: 4px;
+  border-radius: 6px;
+  border: 1px solid var(--text);
+  transition: all 0.3s ease;
+}
+
+nav a:hover {
+  background: var(--flag-red);
+  color: var(--flag-white);
+}
+
+nav a.active {
+  background: var(--flag-blue);
+  color: var(--flag-white);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ----- Containers & Sections ----- */
+.container {
+  width: 90%;
+  max-width: 800px;
+  margin: 20px auto;
+  text-align: center;
+}
+
+header, section, footer {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  margin: 20px auto;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* ----- Buttons ----- */
+.btn {
+  display: inline-block;
+  background: var(--text);
+  color: var(--flag-white);
+  padding: 10px 18px;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: 0.3s;
+  border: 1px solid var(--text);
+}
+
+.btn:hover {
+  background: var(--flag-red);
+  color: var(--flag-white);
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+/* ----- Quotes Section ----- */
+.quote {
+  font-style: italic;
+  font-size: 1.2em;
+  color: var(--text);
+  margin: 10px 0;
+  opacity: 0;
+  transition: opacity 1s ease-in;
+}
+
+.source {
+  font-weight: bold;
+  color: var(--text);
+  opacity: 0;
+  transition: opacity 1s ease-in;
+}
+
+/* ----- Form Elements ----- */
+label { display:block; font-weight:bold; margin:8px 0 4px; text-align:left; }
+input, select, textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+/* ----- Footer ----- */
+footer {
+  background: rgba(255,255,255,0.9);
+  border-top: 3px solid var(--text);
+  color: var(--text);
+  font-size: 0.9em;
+  padding: 15px 10px;
+  width: 90%;
+  max-width: 800px;
+  border-radius: 12px;
+}
+
+/* ----- Responsive Mobile ----- */
+@media (max-width: 600px) {
+  nav { flex-direction: column; }
+  nav a { width: 90%; text-align: center; margin: 6px auto; }
+  header h1 { font-size: 1.4em; }
+  footer { font-size: 0.8em; }
+}
