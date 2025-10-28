@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+
+  <link rel="stylesheet" href="css/patriotic.css">
+<script src="lcp-nav.js" defer></script>
+  <meta charset="utf-8"/>
+  <title>My Life Compass Solutions — Hobbies</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="theme-color" content="#2563eb"/>
+
+  <!-- Snapshots (PNG/JPG) -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" crossorigin="anonymous"></script>
+  <!-- Simple client PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" crossorigin="anonymous"></script>
+
+  <style>
+    :root{
+      --bg:#0b1020; --card:#111830; --ink:#e8eefc; --muted:#b9c4e8;
+      --accent:#2563eb; --accent-2:#22c55e; --warn:#f59e0b; --danger:#ef4444;
+      --chip:#1b2344; --chip-on:#0f172a; --border:#2a3563; --soft:#152041;
+      --focus:0 0 0 3px rgba(37,99,235,.4); --radius:14px;
+      --cols:5; /* five across on large screens */
+      --hubMin:280px; --hubMax:760px;
+    }
+    *{box-sizing:border-box}
+    html,body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;line-height:1.35;margin:0}
+    a{color:inherit}
+
+    /* ===== Collapsible sticky header ===== */
+    header.top{
+      position:sticky; top:0; z-index:40; backdrop-filter:saturate(1.1) blur(8px);
+      background:linear-gradient(180deg, rgba(11,16,32,.98), rgba(11,16,32,.7));
+      border-bottom:1px solid var(--border);
+    }
+    body.header-hidden header.top{ display:none; }
+    .wrap{width:min(1200px,94vw);margin-inline:auto;padding:16px;}
+    h1{font-size:clamp(22px,3vw,34px);margin:8px 0 6px}
+    p.sub{color:var(--muted);margin:0 0 12px}
+    .toolbar{display:grid;gap:8px;grid-template-columns:1fr 1fr;align-items:center}
+    .toolbar .row{display:flex;gap:8px;flex-wrap:wrap}
+    input[type="search"], select, button, .btn {
+      background:var(--chip); color:var(--ink); border:1px solid var(--border);
+      border-radius:10px; padding:10px 12px; font:inherit;
+    }
+    input[type="search"]{width:100%}
+    button,.btn{cursor:pointer}
+    button.primary{background:var(--accent);border-color:transparent}
+    button.good{background:var(--accent-2);border-color:transparent}
+    button.warn{background:var(--warn);border-color:transparent}
+    button.danger{background:var(--danger);border-color:transparent}
+    button:focus-visible{outline:none; box-shadow:var(--focus)}
+    main{padding-block:8px 28px}
+    section.card{
+      background:linear-gradient(180deg, var(--card), var(--soft));
+      border:1px solid var(--border); border-radius:var(--radius);
+      padding:16px; margin:12px 0;
+    }
+    section.card h2{font-size:clamp(18px,2.2vw,24px); margin:0 0 10px}
+
+    details>summary{
+      list-style:none; cursor:pointer; padding:10px 12px; margin:-10px -12px 12px;
+      border-radius:10px; background:rgba(255,255,255,.02); border:1px dashed var(--border);
+      color:var(--muted)
+    }
+    details[open]>summary{background:rgba(255,255,255,.04); color:var(--ink)}
+
+    /* ===== EXACTLY FIVE COLUMNS on wide screens ===== */
+    .grid5{
+      display:grid; gap:10px;
+      grid-template-columns: repeat(var(--cols), 1fr);
+    }
+    /* Responsive downshift */
+    @media (max-width:1200px){ :root{ --cols:4; } }
+    @media (max-width:980px){  :root{ --cols:3; } }
+    @media (max-width:700px){  :root{ --cols:2; } }
+    @media (max-width:480px){  :root{ --cols:1; } }
+
+    /* ===== Hobby tile (name top, buttons UNDER it) ===== */
+    .tile{
+      display:flex; flex-direction:column; gap:8px;
+      background:var(--chip); border:1px solid var(--border);
+      border-radius:12px; padding:10px; min-height:84px;
+    }
+    .tile .name{
+      font-size:14px; font-weight:600; text-align:center;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      cursor:default;
+    }
+    .tile .actions{
+      display:grid; grid-template-columns: repeat(2, 1fr); gap:6px;
+    }
+    .tile .mini{
+      padding:6px 8px; font-size:12px; line-height:1; border-radius:10px;
+      border:1px solid var(--border); background:rgba(255,255,255,.08);
+      text-align:center;
+    }
+    .tile .mini.details{ grid-column: span 2; background:rgba(37,99,235,.18); border-color:var(--accent) }
+    .legend{display:flex; gap:10px; flex-wrap:wrap; color:var(--muted); font-size:12px; margin:8px 0}
+
+    .lists{display:grid; gap:12px; grid-template-columns: repeat(auto-fit,minmax(240px,1fr))}
+    .list{border:1px solid var(--border); border-radius:12px; padding:10px; background:rgba(255,255,255,.03)}
+    .list h3{margin:0 0 6px; font-size:16px}
+    .pill{display:inline-flex; align-items:center; gap:6px; background:var(--chip); border:1px solid var(--border); border-radius:999px; padding:6px 10px; margin:6px 6px 0 0; font-size:13px}
+    .pill .x{background:transparent; border:0; color:var(--muted); cursor:pointer}
+    .fine{font-size:12px; color:var(--muted)}
+    .hr{height:1px;background:linear-gradient(90deg, transparent, var(--border), transparent); margin:10px 0}
+    .tagrow{display:flex; gap:8px; flex-wrap:wrap}
+    .tag{background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:999px; padding:6px 10px; cursor:pointer}
+    .tag.on{color:var(--ink); background:rgba(37,99,235,.15); border-color:var(--accent)}
+    .note{padding:10px 12px; border:1px dashed var(--border); border-radius:10px; background:rgba(255,255,255,.03)}
+    .dangerzone{border:1px solid rgba(239,68,68,.4); background:linear-gradient(180deg, #241016, #1a0d12)}
+    .swap{display:flex; gap:8px; flex-wrap:wrap}
+    .footer-actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; margin-top:10px}
+
+    /* ===== Floating “Show bar” button when header hidden ===== */
+    .showbar{
+      position: fixed; top: 12px; right: 12px; z-index: 60;
+      background: var(--accent); color:#fff; border:0; border-radius:999px;
+      padding:8px 12px; cursor:pointer; box-shadow:0 8px 24px rgba(37,99,235,.35);
+      font: inherit;
+    }
+
+    /* ===== Right-side tiny tab + drawer ===== */
+    .hub-tab{
+      position: fixed; right: 0; top: 40%; transform: translateY(-50%);
+      background: var(--accent); color:#fff; border-radius: 8px 0 0 8px;
+      padding:8px 12px; cursor: pointer; z-index: 70; writing-mode: vertical-rl; text-orientation: mixed;
+      box-shadow: 0 10px 30px rgba(37,99,235,.35);
+    }
+    .hub-drawer{
+      position: fixed; top:0; right:0; height:100dvh; width: 380px;
+      max-width:var(--hubMax); min-width: var(--hubMin);
+      background: linear-gradient(180deg, var(--card), var(--soft));
+      border-left:1px solid var(--border); box-shadow: -12px 0 40px rgba(0,0,0,.35);
+      z-index: 69; display:none; grid-template-rows:auto 1fr auto;
+    }
+    .hub-drawer.open{ display:grid; }
+    .hub-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px; border-bottom:1px solid var(--border); }
+    .hub-body{ padding:10px 12px; overflow:auto; display:grid; gap:10px; }
+    .hub-foot{ padding:8px 12px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:space-between; align-items:center }
+    .hub-btn{ background:rgba(255,255,255,.06); color:var(--ink); border:1px solid var(--border); border-radius:8px; padding:6px 8px; cursor:pointer; font:inherit }
+    .hub-resizer{ position:absolute; left:-6px; top:0; width:6px; height:100%; cursor:ew-resize; background:transparent; }
+
+    /* ===== Hobby Details Card ===== */
+    dialog#card{
+      border:1px solid var(--border); border-radius:12px; background:linear-gradient(180deg,var(--card),var(--soft));
+      color:var(--ink); width:min(860px, 94vw); max-height:90dvh; padding:0; overflow:hidden;
+    }
+    dialog#card::backdrop{ background:rgba(0,0,0,.55); }
+    .card-head{ display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid var(--border) }
+    .card-body{ padding:12px; display:grid; gap:12px; overflow:auto; max-height:calc(90dvh - 120px) }
+    .card-grid{ display:grid; gap:12px; grid-template-columns:1.2fr .8fr }
+    @media (max-width:900px){ .card-grid{ grid-template-columns:1fr } }
+    .entry{ border:1px solid var(--border); border-radius:10px; padding:10px; background:rgba(255,255,255,.03); margin-top:6px }
+    .entry small{ color:var(--muted) }
+    .linkrow{ display:flex; gap:8px; flex-wrap:wrap; }
+    .linkrow a{ background:rgba(255,255,255,.06); border:1px solid var(--border); border-radius:8px; padding:6px 8px; text-decoration:none }
+  </style>
+</head>
+<body>
+   <!-- ✅ Navigation bar -->
+ <nav>
+  <a href="../index.html">🏠 Back to Main Home</a>
+  <a href="index.html">Home</a>
+  <a href="vision.html">Vision Board</a>
+  <a href="journal.html">Journal</a>
+  <a href="growth.html">Growth Areas</a>
+  <a href="hobbies.html">Hobbies</a>
+  <a href="spiritual.html">Spiritual</a>
+  <a href="physical.html">Physical</a>
+  <a href="mental.html">Mental</a>
+  <a href="financial.html">Financial</a>
+  <a href="calendar.html">Calendar</a>
+  <a href="contact.html">Contact</a>
+  <a href="feedback.html">Feedback</a>
+  <a href="#" id="logoutBtn">Logout</a>
+</nav>
+<!-- Floating “restore header” when hidden -->
+<button id="showBar" class="showbar" hidden>Show Hobbies Bar ▾</button>
+
+<header class="top">
+  <div class="wrap">
+    <h1>Hobbies Hub</h1>
+    <p class="sub">Browse five across. Under each hobby use the buttons to send it to a list, or tap <em>Details</em> for a definition, how-to, and your personal journal.</p>
+    <div class="toolbar">
+      <div class="row">
+        <input id="search" type="search" placeholder="Search hobbies (e.g., chess, hiking, watercolor) …" aria-label="Search hobbies"/>
+      </div>
+      <div class="row" aria-label="Quick actions">
+        <button id="selectAll" class="btn">Select All in View</button>
+        <button id="clearAll" class="btn">Clear All</button>
+
+        <!-- Data export/import -->
+        <button id="exportJson" class="btn">Export JSON</button>
+        <button id="exportCsv" class="btn">Export CSV</button>
+        <label class="btn" for="importFile">Import (JSON/CSV)</label>
+        <input id="importFile" type="file" accept=".json,.csv" hidden />
+
+        <!-- Visual exports -->
+        <button id="snapJpg" class="btn">Export JPG</button>
+        <button id="snapPng" class="btn">Export PNG</button>
+        <button id="snapPdf" class="btn">Export PDF</button>
+
+        <button id="hideBar" class="btn" title="Hide this bar">Hide bar ▲</button>
+      </div>
+    </div>
+    <div class="tagrow" id="categoryTags" aria-label="Category filters"></div>
+    <div class="legend"><span class="fine">Five columns across (auto-shrinks on phones). Use search + category chips to narrow.</span></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="card">
+    <h2>Browse & Pick</h2>
+    <details open>
+      <summary>Show / hide the giant hobby wall</summary>
+      <div id="hobbyGrid" class="grid5" aria-live="polite"></div>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2>Add Your Own</h2>
+    <div class="note">
+      <label for="customName" class="fine">Hobby name</label>
+      <input id="customName" type="text" placeholder="e.g., Rock tumbling, Sourdough art" style="width:100%;margin-top:6px" />
+      <div style="display:flex; gap:8px; margin-top:8px">
+        <select id="customCategory" title="Category" style="flex:1"></select>
+        <button id="addCustom" class="good">Add</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Your Lists</h2>
+    <div class="lists">
+      <div class="list" id="list-active">
+        <h3>✅ Active <span class="fine" id="count-active">(0)</span></h3>
+        <div class="items"></div>
+      </div>
+      <div class="list" id="list-try">
+        <h3>🧪 Try Next <span class="fine" id="count-try">(0)</span></h3>
+        <div class="items"></div>
+      </div>
+      <div class="list" id="list-wish">
+        <h3>♡ Wishlist <span class="fine" id="count-wish">(0)</span></h3>
+        <div class="items"></div>
+      </div>
+      <div class="list" id="list-retire">
+        <h3>⏹ Retire / Pause <span class="fine" id="count-retire">(0)</span></h3>
+        <div class="items"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card dangerzone">
+    <h2>⚠️ “Questionable” / “Bad” Habits → Healthier Replacements</h2>
+    <p class="fine">Click a red item to move it into <em>Retire</em>. Click a green replacement to add it to <em>Try Next</em>.</p>
+    <div id="badList" class="swap"></div>
+    <div class="hr"></div>
+    <div class="tagrow">
+      <button id="retireAllBad" class="danger">Move All to Retire</button>
+      <button id="tryAllReplacements" class="good">Add All Replacements to Try Next</button>
+    </div>
+  </section>
+</main>
+
+<!-- ===== Right-side tiny tab + resizable drawer ===== -->
+<div id="hubTab" class="hub-tab" role="button" tabindex="0" aria-controls="hubDrawer" aria-expanded="false">Hobbies Hub</div>
+<aside id="hubDrawer" class="hub-drawer" aria-label="Hobbies Hub Drawer" aria-hidden="true">
+  <div class="hub-resizer" id="hubResizer" title="Drag to resize"></div>
+  <div class="hub-head">
+    <strong>Hobbies Hub</strong>
+    <div>
+      <button class="hub-btn" id="hubClose">Close</button>
+    </div>
+  </div>
+  <div class="hub-body">
+    <div class="fine">Quick notes while you browse (auto-saves).</div>
+    <textarea id="hubQuickNotes" rows="10" placeholder="Quick notes…"></textarea>
+  </div>
+  <div class="hub-foot">
+    <span class="fine">Drag the edge to resize • Remembers size & notes</span>
+    <button class="hub-btn" id="hubClearNotes">Clear Notes</button>
+  </div>
+</aside>
+
+<!-- ===== Hobby Details Card ===== -->
+<dialog id="card">
+  <div class="card-head">
+    <div style="display:flex; gap:8px; align-items:center;">
+      <strong id="cardTitle">Hobby</strong>
+      <span class="fine" id="cardCategory"></span>
+    </div>
+    <button class="btn" id="cardClose">Close ✕</button>
+  </div>
+  <div class="card-body">
+    <div class="card-grid">
+      <div>
+        <h3 style="margin:0 0 6px">What it is</h3>
+        <p id="cardDefinition" class="fine" style="margin-top:0"></p>
+        <h3 style="margin:10px 0 6px">How to start</h3>
+        <ul id="cardHow"></ul>
+        <div class="linkrow" id="cardLinks"></div>
+      </div>
+      <div>
+        <h3 style="margin:0 0 6px">Journal / Tracker</h3>
+        <div class="note">
+          <label class="fine">Entry title</label>
+          <input id="jTitle" type="text" placeholder="e.g., Food Trucks — Week 1"/>
+          <div style="display:flex; gap:8px; margin-top:6px">
+            <input id="jDate" type="date" style="flex:0 0 160px"/>
+            <input id="jLink" type="url" placeholder="Optional link (map, photo album, etc.)" style="flex:1"/>
+          </div>
+          <label class="fine" style="margin-top:6px">Notes</label>
+          <textarea id="jNotes" rows="4" placeholder="What did you do? Where did you go? What did you learn?"></textarea>
+          <div style="display:flex; gap:8px; margin-top:6px">
+            <button id="jAdd" class="primary">Add Entry</button>
+            <button id="jExport" class="btn">Export Hobby Log (JSON)</button>
+          </div>
+        </div>
+        <div id="jList"></div>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+/* ==================== Data ==================== */
+const CATALOG = {
+  "Arts & Crafts": ["Drawing","Sketching","Watercolor","Acrylic painting","Oil painting","Calligraphy","Origami","Ceramics","Pottery wheel","Wood carving","Leathercraft","Embroidery","Sewing","Quilting","Crochet","Knitting","Resin art","Soap making","Candle making","Bookbinding","Rock tumbling"],
+  "Music & Sound": ["Singing","Songwriting","Music production","Guitar","Piano/keys","Drums","Violin","Field recording","Podcasting"],
+  "Performing & Social": ["Acting","Improv","Magic tricks","Juggling","Community theatre","Public speaking","Toastmasters"],
+  "Writing & Languages": ["Journaling","Poetry","Short stories","Novel writing","Blogging","Newsletter writing","Language learning (Spanish)","Language learning (ASL)"],
+  "Reading & Puzzles": ["Book club","Crosswords","Sudoku","Rubik’s cube","Chess puzzles","Trivia nights"],
+  "Games — Board": ["Chess","Catan","Ticket to Ride","Pandemic","Azul","Dominion","Carcassonne","Wingspan","Scythe","Root","Spirit Island","Splendor","Love Letter"],
+  "Games — Card & TCG": ["Poker","Bridge","Cribbage","Rummy","Magic: The Gathering","Pokémon TCG"],
+  "Games — RPG & Tabletop": ["Dungeons & Dragons","Pathfinder","Mini painting","Terrain building"],
+  "Games — Video & Digital": ["Retro gaming","Speedrunning","Level design","Game jams","VR gaming","Strategy games"],
+  "Outdoors & Adventure": ["Day hiking","Backpacking","Trail running","Geocaching","Birdwatching","Rock climbing (toprope)","Camping","Stargazing","Astrophotography","National parks quest"],
+  "Sports & Play": ["Pickleball","Tennis","Basketball","Soccer","Disc golf","Bowling","Cornhole","Archery","Boxing (fitness)"],
+  "Water, Snow & Air": ["Swimming","Snorkeling","Kayaking","Stand-up paddle","Sailing","Surfing","Skiing (alpine)","Snowboarding"],
+  "Fitness & Body": ["Walking club","Rucking","Couch-to-5K","Calisthenics","Pull-up training","Yoga","Pilates","Sauna sessions"],
+  "Mind, Learning & Spiritual": ["Meditation","Scripture study","Gratitude practice","History deep dives","Documentary club","Memory techniques","Debate practice","Service projects"],
+  "Tech & Making": ["Coding challenges","Open-source contribution","3D printing","3D modeling","Electronics (Arduino)","Raspberry Pi builds","Home automation","Drones (recreational)"],
+  "Home, Food & Garden": ["Sourdough baking","BBQ smoking","Fermentation (kimchi)","Coffee roasting","Mocktail crafting","Meal prep Sundays","Herb gardening","Indoor plants","Composting","Furniture upcycling","Thrifting flips"],
+  "Collecting & Curating": ["Coin collecting","Stamp collecting","Vinyl records","Books first editions","Comics grading","Sports cards","Action figures","Sea glass","Rocks & minerals"],
+  "Animals & Nature": ["Dog training","Aquascaping","Terrariums","Butterfly garden","Wildlife photography","Nature journaling"],
+  "Financial & Builder": ["Budgeting challenges","No-spend weekends","Couponing skill","Side-hustle experiments","Etsy shop test","Grant writing practice"],
+  "Travel & Local": ["City walking tours","Road trip planning","Travel hacking (education)","National parks quest","Food trucks quest","Hidden hikes list","Sunrise/sunset chasing"],
+  "Meta & Micro-Hobbies": ["Bullet journaling spreads","Map drawing","Genealogy","Photo scanning & archiving"]
+};
+
+// “Bad” map
+const BAD_MAP = {
+  "Doom-scrolling": ["Book club","Nature journaling","Walking club"],
+  "Procrastination spirals": ["Pomodoro + walk","Time blocking art","Morning pages"],
+  "Compulsive shopping": ["Minimalism challenge","Thrifting flips","No-spend weekends"]
+};
+
+/* Mini dictionary for definitions + how-to (fallback if not present) */
+const DICT = {
+  "Rock tumbling": {def:"Polishing raw stones in a rotating tumbler using grit stages.", how:["Buy a beginner tumbler + mixed rough.","Run coarse → medium → fine → polish (each 5–7 days).","Rinse thoroughly between stages.","Label grit; don’t pour slurry down the sink."]},
+  "Watercolor": {def:"Painting with transparent water-soluble pigments on paper.", how:["Paper 140lb+ cold press.","Limit palette to 3–5 colors.","Work light → dark; reserve whites.","Practice washes + gradients."]},
+  "Chess": {def:"Two-player strategy board game on an 8×8 board.", how:["Learn piece moves & check rules.","Practice basic mates.","Solve daily tactics 10–15 min.","Play rapid games; review blunders."]},
+  "Road trip planning": {def:"Designing routes, stops, and logistics for a driving trip.", how:["Pick theme & dates.","Plot route with fuel/food/lodging.","Reserve stays; download offline maps.","Make packing & safety checklist."]},
+  "Food trucks quest": {def:"Exploring and rating local food trucks.", how:["Find trucks via socials & events.","Make a cuisine checklist.","Track visits with photos/ratings.","Share a top-5 monthly."]},
+  "National parks quest": {def:"Visiting U.S. National Parks and collecting cancellations/stamps.", how:["Get a Passport book.","Plan parks by region/season.","Learn Leave No Trace.","Collect stamps at visitor centers."]},
+  "Sourdough baking": {def:"Bread made by wild-yeast starter fermentation.", how:["Maintain starter (feed 1:1:1).","Bulk ferment until doubled.","Shape; cold proof.","Bake in preheated Dutch oven."]},
+  "Kayaking": {def:"Paddling a small watercraft with a double-bladed paddle.", how:["Wear PFD; check weather.","Learn wet exit & re-entry.","Practice strokes on calm water.","Plan short routes with a buddy."]}
+};
+
+/* ====== State ====== */
+const STATE = {
+  active:new Set(), try:new Set(), wish:new Set(), retire:new Set(),
+  custom:{}, filters:new Set(), search:""
+};
+const STORAGE_KEY = "lcp_hobbies_v3";
+const NOTES_KEY   = "lcp_hub_quicknotes";
+const HUB_W_KEY   = "lcp_hub_width";
+
+/* ====== Helpers ====== */
+const $ = s=>document.querySelector(s);
+const el=(t,a={},...kids)=>{const n=document.createElement(t);Object.entries(a).forEach(([k,v])=>{if(k==="class")n.className=v;else if(k==="dataset")Object.assign(n.dataset,v);else if(k.startsWith("on")&&typeof v==="function")n.addEventListener(k.slice(2),v);else n.setAttribute(k,v)});kids.forEach(k=>n.append(k?.nodeType?k:document.createTextNode(k)));return n};
+
+/* ====== Save/Load ====== */
+function save(){
+  const obj = { active:[...STATE.active], try:[...STATE.try], wish:[...STATE.wish], retire:[...STATE.retire], custom:STATE.custom };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+  updateCounts();
+}
+function load(){
+  try{
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}");
+    ["active","try","wish","retire"].forEach(k=> STATE[k] = new Set(raw[k]||[]));
+    STATE.custom = raw.custom || {};
+  }catch(_){}
+}
+
+/* ====== Category chips ====== */
+const ALL_CATS = Object.keys(CATALOG);
+function renderCategoryTags(){
+  const row = $("#categoryTags"); row.innerHTML="";
+  ALL_CATS.forEach(cat=>{
+    const b = el("button",{class:"tag", "aria-pressed":"false"}, cat);
+    b.onclick=()=>{
+      const on = b.classList.toggle("on");
+      b.setAttribute("aria-pressed", on?"true":"false");
+      if(on) STATE.filters.add(cat); else STATE.filters.delete(cat);
+      renderGrid();
+    };
+    row.append(b);
+  });
+  $("#customCategory").innerHTML = ALL_CATS.map(c=>`<option>${c}</option>`).join("");
+}
+
+/* ====== Grid (five across) ====== */
+function listAll(){
+  const out=[];
+  for(const [cat, arr] of Object.entries(CATALOG)) arr.forEach(n=> out.push({cat,name:n}));
+  for(const [cat, arr] of Object.entries(STATE.custom)) (arr||[]).forEach(n=> out.push({cat,name:n,custom:true}));
+  return out;
+}
+function renderGrid(){
+  const box = $("#hobbyGrid"); box.innerHTML="";
+  const q = STATE.search.trim().toLowerCase();
+  listAll().filter(({cat,name})=>{
+    const inCat = STATE.filters.size? STATE.filters.has(cat) : true;
+    const match = !q || name.toLowerCase().includes(q);
+    return inCat && match;
+  }).forEach(({cat,name,custom})=>{
+    const tile = el("div",{class:"tile","data-cat":cat,"data-name":name});
+    const title = el("div",{class:"name"}, name + (custom? " " : ""));
+    const actions = el("div",{class:"actions"});
+    actions.append(
+      mini("+ Active", e=>{move(name,"active"); e.stopPropagation();}),
+      mini("→ Try",    e=>{move(name,"try");    e.stopPropagation();}),
+      mini("♡ Wish",   e=>{move(name,"wish");   e.stopPropagation();}),
+      mini("⏹ Retire", e=>{move(name,"retire"); e.stopPropagation();}),
+      mini("Details",  e=>{openCard(name,cat);  e.stopPropagation();},"details")
+    );
+    tile.append(title, actions);
+    box.append(tile);
+  });
+}
+const mini=(txt,fn,extra)=>{ const b=el("button",{class:"mini"+(extra?` ${extra}`:""), onClick:fn, title:txt}, txt); return b; };
+
+/* ====== Lists ====== */
+function renderLists(){
+  const map = {active:$("#list-active .items"), try:$("#list-try .items"), wish:$("#list-wish .items"), retire:$("#list-retire .items")};
+  for(const [k,box] of Object.entries(map)){
+    box.innerHTML="";
+    [...STATE[k]].sort((a,b)=>a.localeCompare(b)).forEach(name=>{
+      const p = el("span",{class:"pill"}, name, el("button",{class:"x",title:"Remove", onClick:()=>{STATE[k].delete(name); save(); renderLists();}},"✕"));
+      box.append(p);
+    });
+  }
+  updateCounts();
+}
+function move(name,dest){
+  ["active","try","wish","retire"].forEach(k=> STATE[k].delete(name));
+  STATE[dest].add(name);
+  save(); renderLists();
+}
+function updateCounts(){
+  $("#count-active").textContent=`(${STATE.active.size})`;
+  $("#count-try").textContent=`(${STATE.try.size})`;
+  $("#count-wish").textContent=`(${STATE.wish.size})`;
+  $("#count-retire").textContent=`(${STATE.retire.size})`;
+}
+
+/* ====== Bad habits ====== */
+function renderBad(){
+  const box=$("#badList"); box.innerHTML="";
+  Object.entries(BAD_MAP).forEach(([bad,repl])=>{
+    const row=el("div",{class:"pill"});
+    row.append(el("button",{class:"btn danger",onClick:()=>move(bad,"retire")},bad), el("span",{},"→"));
+    repl.forEach(r=> row.append(el("button",{class:"btn good",onClick:()=>move(r,"try")},r)));
+    box.append(row);
+  });
+}
+
+/* ====== Custom add ====== */
+function addCustom(){
+  const name=$("#customName").value.trim(); const cat=$("#customCategory").value;
+  if(!name) return;
+  if(!STATE.custom[cat]) STATE.custom[cat]=[];
+  const exists=(CATALOG[cat]||[]).includes(name)||(STATE.custom[cat]||[]).includes(name);
+  if(!exists) STATE.custom[cat].push(name);
+  $("#customName").value="";
+  save(); renderGrid();
+}
+
+/* ====== Export / Import ====== */
+function getPayload(){ return {active:[...STATE.active], try:[...STATE.try], wish:[...STATE.wish], retire:[...STATE.retire], custom:STATE.custom}; }
+
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(getPayload(),null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob); const a=el("a",{href:url,download:"hobbies-data.json"}); document.body.append(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+function toCsvRow(vals){return vals.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")}
+function exportCSV(){
+  const rows=[["list","name"]];
+  [["active",STATE.active],["try",STATE.try],["wish",STATE.wish],["retire",STATE.retire]].forEach(([k,set])=>{
+    [...set].forEach(n=>rows.push([k,n]));
+  });
+  Object.entries(STATE.custom).forEach(([cat,arr])=> arr.forEach(n=> rows.push(["custom:"+cat,n])));
+  const blob=new Blob([rows.map(r=>toCsvRow(r)).join("\n")],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob); const a=el("a",{href:url,download:"hobbies-data.csv"}); document.body.append(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+function importAny(file){
+  const ext=(file.name.split(".").pop()||"").toLowerCase();
+  if(ext==="json") return importJSON(file);
+  if(ext==="csv") return importCSV(file);
+  alert("Import supports JSON/CSV. (Images/PDF can export as snapshots.)");
+}
+function importJSON(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{ const obj=JSON.parse(e.target.result);
+      ["active","try","wish","retire"].forEach(k=> STATE[k]=new Set(obj[k]||[]));
+      STATE.custom=obj.custom||{}; save(); renderGrid(); renderLists();
+    }catch(_){ alert("Invalid JSON."); }
+  }; reader.readAsText(file);
+}
+function importCSV(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const lines=e.target.result.split(/\r?\n/).filter(Boolean); lines.shift(); // header
+      ["active","try","wish","retire"].forEach(k=>STATE[k].clear()); STATE.custom={};
+      lines.forEach(line=>{
+        const m=line.match(/^"(.*)","(.*)"$/); const list=m?m[1].replace(/""/g,'"'):line.split(",")[0];
+        const name=m?m[2].replace(/""/g,'"'):line.split(",")[1];
+        if(!name) return;
+        if(list.startsWith("custom:")){
+          const cat=list.slice(7); if(!STATE.custom[cat]) STATE.custom[cat]=[]; if(!STATE.custom[cat].includes(name)) STATE.custom[cat].push(name);
+        }else if(STATE[list]) STATE[list].add(name);
+      });
+      save(); renderGrid(); renderLists();
+    }catch(_){ alert("CSV import failed."); }
+  }; reader.readAsText(file);
+}
+
+/* ====== Snapshots (JPG/PNG/PDF) ====== */
+async function snapshotEl(selector, mode="png"){
+  const node=document.querySelector(selector); if(!node){ alert("Section not found."); return; }
+  const canvas=await html2canvas(node,{backgroundColor:null,scale:window.devicePixelRatio||1});
+  if(mode==="png"||mode==="jpg"){
+    const mime = mode==="jpg" ? "image/jpeg" : "image/png";
+    const url=canvas.toDataURL(mime, 0.92);
+    const a=el("a",{href:url,download:`hobbies-${mode}.${mode}`}); document.body.append(a); a.click(); a.remove();
+  }else if(mode==="pdf"){
+    const { jsPDF } = window.jspdf;
+    const pdf=new jsPDF({unit:"px",format:[canvas.width,canvas.height]});
+    pdf.addImage(canvas.toDataURL("image/png"),"PNG",0,0,canvas.width,canvas.height);
+    pdf.save("hobbies.pdf");
+  }
+}
+
+/* ====== Header hide/show ====== */
+(function headerToggle(){
+  const KEY='hobbies_header_hidden';
+  const hideBtn=$("#hideBar"); const showBtn=$("#showBar");
+  function apply(hidden){ document.body.classList.toggle('header-hidden',hidden); showBtn.hidden=!hidden; localStorage.setItem(KEY, JSON.stringify(!!hidden));}
+  try{ apply(JSON.parse(localStorage.getItem(KEY)||"false")); }catch(_){}
+  hideBtn.onclick=()=>apply(true); showBtn.onclick=()=>apply(false);
+  window.addEventListener("keydown", e=>{ if((e.altKey||e.metaKey)&&e.key.toLowerCase()==='j'){ apply(!document.body.classList.contains('header-hidden')); }});
+})();
+
+/* ====== Right Drawer (tiny tab) ====== */
+(function hub(){
+  const tab=$("#hubTab"), drawer=$("#hubDrawer"), res=$("#hubResizer"), close=$("#hubClose"), notes=$("#hubQuickNotes"), clear=$("#hubClearNotes");
+  // restore width + notes
+  const w=localStorage.getItem(HUB_W_KEY); if(w) drawer.style.width = Math.min(Math.max(parseInt(w,10), 280), 760)+"px";
+  notes.value = localStorage.getItem(NOTES_KEY)||"";
+  notes.addEventListener("input", ()=> localStorage.setItem(NOTES_KEY, notes.value));
+  function open(){ drawer.classList.add("open"); drawer.setAttribute("aria-hidden","false"); tab.setAttribute("aria-expanded","true"); }
+  function closeD(){ drawer.classList.remove("open"); drawer.setAttribute("aria-hidden","true"); tab.setAttribute("aria-expanded","false"); }
+  tab.addEventListener("click", open); tab.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" ") {e.preventDefault(); open(); }});
+  close.onclick=closeD;
+  clear.onclick=()=>{ if(confirm("Clear quick notes?")){ notes.value=""; localStorage.setItem(NOTES_KEY,""); } };
+  // resize
+  let dx=0,startW=0; res.addEventListener("mousedown", e=>{ dx=e.clientX; startW=drawer.getBoundingClientRect().width; window.addEventListener("mousemove", mm); window.addEventListener("mouseup", up);});
+  function mm(e){ const delta=dx-e.clientX; const w=Math.min(Math.max(startW+delta, 280), 760); drawer.style.width=w+"px"; }
+  function up(){ window.removeEventListener("mousemove", mm); window.removeEventListener("mouseup", up); localStorage.setItem(HUB_W_KEY, parseInt(drawer.style.width,10)); }
+})();
+
+/* ====== Hobby Details (definition + how + journal) ====== */
+const CARD = { el: $("#card"), title:$("#cardTitle"), cat:$("#cardCategory"),
+  def:$("#cardDefinition"), how:$("#cardHow"), links:$("#cardLinks"), list:$("#jList"),
+  t:$("#jTitle"), d:$("#jDate"), l:$("#jLink"), n:$("#jNotes"), add:$("#jAdd"), exp:$("#jExport"), close:$("#cardClose")
+};
+function openCard(name, category){
+  CARD.title.textContent = name;
+  CARD.cat.textContent = `— ${category}`;
+  const q = encodeURIComponent(name);
+  CARD.links.innerHTML = `
+    <a href="https://www.google.com/search?q=${q}+clubs+near+me" target="_blank" rel="noopener">Find Local Clubs</a>
+    <a href="https://www.youtube.com/results?search_query=beginner+${q}" target="_blank" rel="noopener">Beginner Video</a>
+    <a href="https://www.google.com/search?q=${q}+starter+kit" target="_blank" rel="noopener">Starter Kit Ideas</a>
+  `;
+  const info = DICT[name];
+  if(info){
+    CARD.def.textContent = info.def;
+    CARD.how.innerHTML = info.how.map(s=>`<li>${s}</li>`).join("");
+  } else {
+    CARD.def.textContent = "A personal interest you can practice for enjoyment and growth.";
+    CARD.how.innerHTML = `<li>Read a short beginner guide.</li><li>Define your first tiny project and timebox it.</li><li>Write your next 3 actions in the journal below.</li>`;
+  }
+  CARD.el.showModal();
+  renderJournal(name);
+  CARD.add.onclick = ()=> addJournal(name);
+  CARD.exp.onclick = ()=> exportJournal(name);
+}
+CARD.close.onclick = ()=> CARD.el.close();
+
+function journalKey(name){ return "journal_"+name; }
+function getJournal(name){ try{return JSON.parse(localStorage.getItem(journalKey(name))||"[]");}catch(_){return[];} }
+function setJournal(name, arr){ localStorage.setItem(journalKey(name), JSON.stringify(arr)); }
+function renderJournal(name){
+  const arr=getJournal(name); CARD.list.innerHTML="";
+  if(arr.length===0){ CARD.list.innerHTML = `<p class="fine">No entries yet. Add your first plan, itinerary, list, or progress note.</p>`; return; }
+  arr.sort((a,b)=> (a.date||"").localeCompare(b.date||""));
+  arr.forEach((e,i)=>{
+    const card=el("div",{class:"entry"});
+    card.append(el("strong",{}, e.title||"Untitled"), document.createElement("br"),
+                el("small",{}, e.date||"No date"),
+                e.link? el("div",{}, el("a",{href:e.link,target:"_blank",rel:"noopener noreferrer"},"Open link")) : document.createElement("div"),
+                el("div",{}, e.notes||"—"));
+    const del=el("button",{class:"btn", style:"margin-top:6px", onClick:()=>{ const x=getJournal(name); x.splice(i,1); setJournal(name,x); renderJournal(name);} },"Delete");
+    card.append(del);
+    CARD.list.append(card);
+  });
+}
+function addJournal(name){
+  const entry={ title:CARD.t.value.trim(), date:CARD.d.value, link:CARD.l.value.trim(), notes:CARD.n.value.trim() };
+  if(!entry.title && !entry.notes){ alert("Add a title or notes first."); return; }
+  const arr=getJournal(name); arr.push(entry); setJournal(name,arr);
+  CARD.t.value=""; CARD.d.value=""; CARD.l.value=""; CARD.n.value="";
+  renderJournal(name);
+}
+function exportJournal(name){
+  const arr=getJournal(name);
+  const blob=new Blob([JSON.stringify(arr,null,2)],{type:"application/json"});
+  const a=el("a",{href:URL.createObjectURL(blob),download:`${name}-journal.json`}); document.body.append(a); a.click(); a.remove();
+}
+
+/* ==================== Init ==================== */
+function renderCategorySelect(){
+  $("#customCategory").innerHTML = ALL_CATS.map(c=>`<option>${c}</option>`).join("");
+}
+function init(){
+  load();
+  renderCategoryTags();
+  renderCategorySelect();
+  renderBad();
+  renderGrid();
+  renderLists();
+
+  $("#search").addEventListener("input", e=>{ STATE.search = e.target.value; renderGrid(); });
+  $("#addCustom").addEventListener("click", addCustom);
+
+  $("#importFile").addEventListener("change", e=>{ const f=e.target.files[0]; if(f) importAny(f); e.target.value=""; });
+  $("#exportJson").addEventListener("click", exportJSON);
+  $("#exportCsv").addEventListener("click", exportCSV);
+
+  $("#snapJpg").addEventListener("click", ()=> snapshotEl(".lists","jpg"));
+  $("#snapPng").addEventListener("click", ()=> snapshotEl(".lists","png"));
+  $("#snapPdf").addEventListener("click", ()=> snapshotEl(".lists","pdf"));
+
+  $("#selectAll").onclick=()=> document.querySelectorAll("#hobbyGrid .tile").forEach(ch=> ch.classList.add("on"));
+  $("#clearAll").onclick =()=> document.querySelectorAll("#hobbyGrid .tile").forEach(ch=> ch.classList.remove("on"));
+
+  $("#retireAllBad").onclick = ()=>{ Object.keys(BAD_MAP).forEach(b=> STATE.retire.add(b)); save(); renderLists(); };
+  $("#tryAllReplacements").onclick = ()=>{ Object.values(BAD_MAP).flat().forEach(r=> STATE.try.add(r)); save(); renderLists(); };
+
+  // Keyboard nicety: "/" focuses search
+  window.addEventListener("keydown", (e)=>{
+    if(e.key==="/" && document.activeElement.tagName!=="INPUT" && document.activeElement.tagName!=="TEXTAREA"){
+      e.preventDefault(); $("#search").focus();
+    }
+  });
+}
+document.addEventListener("DOMContentLoaded", init);
+</script>
+
+<div id="site-header" data-include="header.html"></div>
+<script src="include.js" defer></script>
+<script src="mood-switcher.js" defer></script>
+<script src="lifecompass.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  const current = location.pathname.split('/').pop();
+  document.querySelectorAll('nav a').forEach(link => {
+    if (link.getAttribute('href') === current) {
+      link.classList.add('active');
+    }
+  });
+</script>
+</body>
+</html>

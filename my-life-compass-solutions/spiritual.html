@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Life Compass Solutions — Spiritual</title>
+
+  <!-- Theme / PWA -->
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="manifest" href="manifest.webmanifest" />
+
+  <!-- Site styles -->
+  <link rel="stylesheet" href="css/patriotic.css" />
+
+  <!-- Floating nav (global) -->
+  <link rel="stylesheet" href="assets/lcp-nav.css" />
+  <script src="assets/lcp-nav.js" defer></script>
+
+  <style>
+    :root{
+      --header-h: 64px;
+      --radius-2: 14px;
+    }
+    body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, var(--flag-red), var(--flag-white), var(--flag-blue));
+  background-attachment: fixed;
+  color: var(--text, #000);
+  font-family: "Arial", sans-serif;
+}
+    main.wrap{ width:min(1100px,92vw); margin: 20px auto 48px; }
+    .card{ background: color-mix(in srgb, var(--panel, rgba(255,255,255,.06)) 85%, transparent);
+           border:1px solid var(--line, rgba(255,255,255,.12));
+           border-radius: var(--radius-2);
+           box-shadow: var(--shadow-1, 0 10px 30px rgba(0,0,0,.25));
+           backdrop-filter: saturate(120%) blur(6px);
+           padding: 16px; }
+    .muted{ color: var(--muted, rgba(255,255,255,.75)); }
+    .grid{ display:grid; gap:12px }
+    .g-2{ grid-template-columns: 1fr 1fr }
+    @media(max-width: 900px){ .g-2{ grid-template-columns: 1fr } }
+    .controls{ display:flex; flex-wrap:wrap; gap:8px; align-items:center }
+    .btn{ appearance:none; border:1px solid var(--line); background:transparent; color:inherit;
+          padding:8px 12px; border-radius:10px; cursor:pointer }
+    .btn-primary{ background: var(--accent, #2563eb); color:#fff; border-color: color-mix(in srgb, var(--accent), #000 20%); }
+    .badge{ display:inline-block; padding:.2rem .6rem; border-radius:999px; border:1px solid var(--line); background: color-mix(in srgb, var(--panel) 70%, transparent); font-size:.85rem }
+    .stack-md > *+*{ margin-top:10px }
+    .quote{ font: 400 1.05rem/1.6 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    .quote big{ font-size:1.2rem }
+    .quote footer{ margin-top:6px; opacity:.8 }
+    .active-link{ font-weight:700; text-decoration:underline; text-underline-offset: 6px; }
+    .divider{ border-top:1px solid var(--line); margin:10px 0 }
+    textarea{ width:100%; min-height:160px; border-radius:12px; border:1px solid var(--line); background: color-mix(in srgb, var(--panel) 92%, transparent); color:inherit; padding:10px }
+    input[type="range"]{ width: 180px }
+    footer{ margin-top:auto }
+  </style>
+</head>
+<body>
+  <!-- Global floating header (auto-includes via lcp-nav.js). We'll still place a static nav for no-JS fallback. -->
+  <div id="site-header" data-include="header.html"></div>
+
+  <!-- Fallback nav (kept super simple, highlight Spiritual) -->
+  <nav style="display:flex; gap:10px; justify-content:center; padding:10px 0;">
+    <a href="../index.html">🏠 Back to Main Home</a>
+    <a href="index.html">Home</a>
+    <a href="vision.html">Vision Board</a>
+    <a href="journal.html">Journal</a>
+    <a href="growth.html">Growth</a>
+    <a href="hobbies.html">Hobbies</a>
+    <a href="spiritual.html" class="active-link">Spiritual</a>
+    <a href="physical.html">Physical</a>
+    <a href="mental.html">Mental</a>
+    <a href="financial.html">Financial</a>
+    <a href="calendar.html">Calendar</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+
+  <main class="wrap">
+    <section class="card" style="margin-bottom:16px">
+      <h1>🕊️ Spiritual</h1>
+      <p class="muted">A quiet place for scripture, reflections, and stillness. Read, listen, and write. Everything saves privately in your browser (local only).</p>
+      <div class="controls" style="margin-top:8px">
+        <button id="playPause" class="btn btn-primary">▶︎ Play Ambient</button>
+        <label class="controls">
+          <span class="badge">Volume</span>
+          <input id="vol" type="range" min="0" max="1" step="0.01" value="0.25" />
+        </label>
+        <label class="controls">
+          <span class="badge">Warmth</span>
+          <input id="warm" type="range" min="0" max="1" step="0.01" value="0.6" />
+        </label>
+        <label class="controls">
+          <span class="badge">Breathe</span>
+          <input id="breathe" type="range" min="0" max="1" step="0.01" value="0.4" />
+        </label>
+      </div>
+      <p class="muted" style="margin:.5rem 0 0">Music is generated <em>live</em> by your browser (no file, no copyright). It’s a soft pad + gentle shimmer designed for prayer and focus.</p>
+    </section>
+
+    <!-- 🎵 Background Music Player (Pixabay Free Track) -->
+<div id="musicPlayer" class="card" style="margin-bottom:16px;">
+    <h2>Background Music (copyright-free)</h2>
+    <audio id="bgMusic" loop preload="auto">
+      <source src="js/soft-piano-ambient.mp3" type="audio/mpeg" />
+    </audio>
+  
+    <div class="controls" style="margin-top:8px;">
+      <button id="playPauseMusic" class="btn btn-primary">▶︎ Play Music</button>
+      <label class="controls">
+        <span class="badge">Music Volume</span>
+        <input id="musicVol" type="range" min="0" max="1" step="0.01" value="0.25" />
+      </label>
+    </div>
+  
+    <p class="muted" style="margin-top:4px;font-size:0.85rem;">
+      Track: “Soft Piano Ambient” — Free from 
+      <a href="https://pixabay.com/music/" target="_blank" rel="noopener">Pixabay Music</a>
+    </p>
+  </div>
+
+    <section class="grid g-2">
+      <article class="card">
+        <h2>Scripture & Uplifting Words</h2>
+        <p class="muted">Tap the refresh button for something new, or browse below.</p>
+        <div class="controls" style="margin:.4rem 0 .6rem">
+          <button id="nextQuote" class="btn">↻ New Quote</button>
+          <label>
+            <select id="quoteFilter" class="btn" style="min-width:12rem">
+              <option value="all" selected>All sources</option>
+              <option value="scripture">Scripture</option>
+              <option value="faith">Faith leaders & authors</option>
+            </select>
+          </label>
+        </div>
+        <div id="quoteBox" class="quote card" style="padding:12px"></div>
+        <div class="divider"></div>
+        <div id="quoteList" class="stack-md"></div>
+      </article>
+
+      <article class="card">
+        <h2>Reflection Journal</h2>
+        <p class="muted">Write freely. Only you can see this. Use the ✨ prompts if you’d like.</p>
+        <div class="controls" style="margin:.3rem 0 .6rem">
+          <button id="insertPrompt" class="btn">✨ Add Prompt</button>
+          <button id="saveNote" class="btn btn-primary">Save</button>
+          <button id="clearNote" class="btn">Clear</button>
+          <button id="exportNote" class="btn">Export .txt</button>
+        </div>
+        <textarea id="note" placeholder="Be still. Write what rises…"></textarea>
+        <p class="muted" id="saveState" style="margin:.4rem 0 0; font-size:.9rem;">Auto-saving…</p>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap muted" style="text-align:center">
+      <p>“Guided by Faith. Strengthened by Fire. Moved by Stillness.”</p>
+      <p>&copy; 2025 My Life Compass Solutions — by LovingSmiles</p>
+    </div>
+  </footer>
+
+  <!-- Quotes + Ambient generator (procedural, copyright-free) -->
+  <script src="js/spiritual-quotes.js" defer></script>
+  <script src="js/spiritual-audio.js" defer></script>
+
+  <script>
+    const $ = (s,r=document)=>r.querySelector(s);
+    const $$= (s,r=document)=>Array.from(r.querySelectorAll(s));
+    const save=(k,v)=>localStorage.setItem(k, JSON.stringify(v));
+    const read=(k,fb)=>{ try{ return JSON.parse(localStorage.getItem(k)) ?? fb }catch{return fb} };
+
+    /* ================= Quotes ================= */
+    const QKEY = 'mlcs_spiritual_quotes_v1';
+    let QUOTES = (window.MCLS_SPIRITUAL_QUOTES || []);
+
+    function pickQuote(filter='all'){
+      const pool = QUOTES.filter(q => filter==='all' ? true : q.kind===filter);
+      if (!pool.length) return null;
+      return pool[Math.floor(Math.random()*pool.length)];
+    }
+    function showQuote(q){
+      if (!q) { $('#quoteBox').textContent = '—'; return; }
+      $('#quoteBox').innerHTML = '<big>“'+q.text.replace(/</g,'&lt;')+'”</big><footer class="muted">— '+(q.source||'').replace(/</g,'&lt;')+'</footer>';
+    }
+    function renderList(filter='all'){
+      const host = $('#quoteList'); host.innerHTML='';
+      QUOTES.filter(q => filter==='all' ? true : q.kind===filter)
+            .forEach(q=>{
+              const div = document.createElement('div');
+              div.className = 'card quote';
+              div.innerHTML = '<div>“'+q.text.replace(/</g,'&lt;')+'”</div><footer>— '+(q.source||'')+'</footer>';
+              host.appendChild(div);
+            });
+    }
+    $('#nextQuote').addEventListener('click', ()=> {
+      showQuote(pickQuote($('#quoteFilter').value));
+    });
+    $('#quoteFilter').addEventListener('change', (e)=>{
+      renderList(e.target.value);
+      showQuote(pickQuote(e.target.value));
+    });
+
+    /* ================= Journal ================= */
+    const NKEY = 'mlcs_spiritual_reflections_v1';
+    const PROMPTS = [
+      'Where did I feel closest to God today?',
+      'A small mercy I noticed:',
+      'A worry I can place in God’s hands:',
+      'One person I can serve this week:',
+      'Scripture or lyric that stayed with me:',
+      'What does “stillness” look like for me today?'
+    ];
+
+    const note = $('#note');
+    function autosave(){
+      localStorage.setItem(NKEY, note.value);
+      $('#saveState').textContent = 'Saved ✓';
+      clearTimeout(autosave._t);
+      autosave._t = setTimeout(()=> $('#saveState').textContent='Auto-saving…', 1500);
+    }
+    note.value = localStorage.getItem(NKEY)||'';
+    note.addEventListener('input', autosave);
+
+    $('#insertPrompt').addEventListener('click', ()=>{
+      const p = PROMPTS[Math.floor(Math.random()*PROMPTS.length)];
+      note.value = (note.value ? note.value + "\n\n" : '') + '— ' + p + "\n";
+      autosave();
+    });
+    $('#saveNote').addEventListener('click', autosave);
+    $('#clearNote').addEventListener('click', ()=>{ if(confirm('Clear your note (local only)?')){ note.value=''; autosave(); } });
+    $('#exportNote').addEventListener('click', ()=>{
+      const blob = new Blob([note.value||''], {type:'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement('a'), {href:url, download:'spiritual-reflection.txt'});
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    /* ================= Ambient player bindings ================= */
+    const AudioUI = window.MCLS_AMBIENT || {};
+    const playBtn = $('#playPause');
+    let playing = false;
+
+    playBtn.addEventListener('click', async ()=>{
+      if (!playing) {
+        await AudioUI.start();
+        playing = true;
+        playBtn.textContent = '⏸ Pause Ambient';
+      } else {
+        await AudioUI.stop();
+        playing = false;
+        playBtn.textContent = '▶︎ Play Ambient';
+      }
+    });
+
+    $('#vol').addEventListener('input', e=> AudioUI.setVolume(parseFloat(e.target.value)));
+    $('#warm').addEventListener('input', e=> AudioUI.setWarmth(parseFloat(e.target.value)));
+    $('#breathe').addEventListener('input', e=> AudioUI.setBreathe(parseFloat(e.target.value)));
+
+    // Prime initial view
+    renderList('all');
+    showQuote(pickQuote('all'));
+  </script>
+</body>
+</html>
