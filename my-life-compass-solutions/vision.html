@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="css/patriotic.css">
+<script src="lcp-nav.js" defer></script>
+  <meta charset="utf-8" />
+  <title>My Life Compass Solutions — Vision Board</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="mood-switcher.js" defer></script>
+  <style>
+    /* Page-specific polish (kept tiny) */
+    .top-tabs {
+      position: sticky; top: calc(var(--header-h) + 4px); z-index: 40;
+      background: color-mix(in srgb, var(--panel) 90%, transparent);
+      backdrop-filter: saturate(140%) blur(6px);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px;
+      box-shadow: var(--shadow-1);
+      margin: 12px auto 16px;
+      display:flex; flex-wrap:wrap; gap:6px; justify-content:center;
+      width: min(100%, 980px);
+    }
+    .top-tabs a{
+      display:inline-flex; align-items:center; gap:.45rem;
+      padding:.5rem .9rem; border-radius:999px; border:1px solid var(--line);
+      background: color-mix(in srgb, var(--panel) 94%, var(--bg) 6%);
+      color:var(--text); text-decoration:none; font-weight:600;
+    }
+    .top-tabs a.active{ background: var(--accent); color:#fff; border-color: color-mix(in srgb, var(--accent), #000 20%) }
+
+    .dropzone{
+      border:2px dashed var(--line);
+      border-radius:16px; padding:20px; text-align:center; color:var(--muted);
+    }
+    .dropzone.drag{ background: color-mix(in srgb, var(--panel) 90%, var(--accent) 10%); border-color: var(--accent) }
+
+    .vision-grid{ display:grid; gap:12px; grid-template-columns:repeat(2,1fr) }
+    @media(min-width:900px){ .vision-grid{ grid-template-columns:repeat(4,1fr) } }
+
+    .vision-item{
+      border:1px solid var(--line);
+      border-radius:14px; background:var(--panel);
+      box-shadow: var(--shadow-1); overflow:hidden; display:flex; flex-direction:column;
+    }
+    .vision-item img{ width:100%; aspect-ratio:1/1; object-fit:cover }
+    .vision-item footer{ padding:10px; display:grid; gap:8px; grid-template-columns:1fr auto auto }
+    .vision-item footer input[type="text"]{ width:100%; padding:.5rem .6rem }
+    .vision-item .tag-input{ font-size:.9rem }
+    .drag-handle{ cursor:grab; user-select:none; font-size:18px; opacity:.6; align-self:center }
+
+    .filters{ display:flex; gap:8px; flex-wrap:wrap; align-items:center }
+    .goal-row{ display:grid; gap:10px; grid-template-columns:1.2fr 1fr 120px 1fr 110px 110px }
+    @media(max-width:900px){ .goal-row{ grid-template-columns:1fr } }
+
+    .mini-toolbar{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center }
+  </style>
+</head>
+<body>
+  <!-- ✅ Navigation bar -->
+ <nav>
+  <a href="../index.html">🏠 Back to Main Home</a>
+  <a href="index.html">Home</a>
+  <a href="vision.html">Vision Board</a>
+  <a href="journal.html">Journal</a>
+  <a href="growth.html">Growth Areas</a>
+  <a href="hobbies.html">Hobbies</a>
+  <a href="spiritual.html">Spiritual</a>
+  <a href="physical.html">Physical</a>
+  <a href="mental.html">Mental</a>
+  <a href="financial.html">Financial</a>
+  <a href="calendar.html">Calendar</a>
+  <a href="contact.html">Contact</a>
+  <a href="feedback.html">Feedback</a>
+  <a href="#" id="logoutBtn">Logout</a>
+</nav>
+  <!-- Shared header (auto-included by include.js) -->
+  <div id="site-header" data-include="header.html"></div>
+ 
+  <!-- Sticky section buttons -->
+  <nav class="top-tabs wrap" aria-label="Vision sections">
+    <a href="#sec-vision" class="tt">Vision</a>
+    <a href="#sec-goals" class="tt">Goals</a>
+    <a href="#sec-rituals" class="tt">Rituals</a>
+    <a href="#sec-areas" class="tt">Areas</a>
+    <a href="#sec-affirm" class="tt">Affirmations</a>
+    <a href="#sec-milestones" class="tt">Milestones</a>
+  </nav>
+
+  <main class="wrap">
+
+    <!-- VISION BOARD -->
+    <section id="sec-vision" class="card">
+      <h1>🌿 Vision Board</h1>
+      <p class="muted">Add images that inspire you. Drag to reorder. Captions & tags save automatically. Switch boards for different life chapters.</p>
+
+      <div class="grid2">
+        <!-- Left: inputs & actions -->
+        <div class="stack-md">
+          <div class="form-grid cols-2">
+            <label>Board
+              <select id="boardSelect"></select>
+            </label>
+            <label>New Board
+              <input id="boardNew" placeholder="e.g., 2025 Renewal" />
+            </label>
+          </div>
+          <div class="mini-toolbar">
+            <button class="btn btn-primary" id="boardAdd">Create & Switch</button>
+            <button class="btn btn-ghost" id="boardRename">Rename</button>
+            <button class="btn btn-danger" id="boardDelete">Delete Board</button>
+          </div>
+
+          <div class="dropzone" id="dz">
+            <p><b>Drop images here</b> or paste (⌘/Ctrl+V) or click</p>
+            <input id="file" type="file" accept="image/*" multiple class="hidden" />
+            <button class="btn btn-primary" id="pick">Choose Images</button>
+          </div>
+
+          <div class="form-grid cols-2">
+            <label>Filter by Tag
+              <input id="tagFilter" placeholder="family, temple, nature…" />
+            </label>
+            <label>Sort
+              <select id="sortMode">
+                <option value="added">Recently Added</option>
+                <option value="alpha">Caption A→Z</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="mini-toolbar">
+            <button class="btn btn-ghost" id="playboard">▶︎ Slideshow</button>
+            <button class="btn btn-ghost" id="exportVisionHTML">Export HTML</button>
+            <button class="btn btn-ghost" id="exportVisionJSON">Export JSON</button>
+            <label class="btn btn-ghost">Import JSON<input id="importVision" type="file" accept="application/json" class="hidden"></label>
+            <button class="btn btn-danger" id="clearVision">Clear (board)</button>
+          </div>
+        </div>
+
+        <!-- Right: grid -->
+        <div>
+          <div id="visionGrid" class="vision-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GOALS (linked to vision) -->
+    <section id="sec-goals" class="card">
+      <h2>🎯 Goals</h2>
+      <p class="muted">Attach goals to your vision. Celebrate progress and tie images to the “why”.</p>
+
+      <div class="form-grid cols-2">
+        <label>Title <input id="g_title" placeholder="Walk 20 minutes daily" /></label>
+        <label>Category
+          <select id="g_cat">
+            <option>Spiritual</option><option>Physical</option><option>Emotional</option>
+            <option>Mental</option><option>Financial</option><option>Other</option>
+          </select>
+        </label>
+        <label>Due Date <input id="g_due" type="date" /></label>
+        <label>Progress (%) <input id="g_prog" type="number" min="0" max="100" value="0" /></label>
+      </div>
+      <div class="mini-toolbar">
+        <button class="btn btn-success" id="g_add">Add Goal</button>
+        <button class="btn btn-ghost" id="exportGoalsHTML">Export HTML</button>
+        <button class="btn btn-ghost" id="exportGoalsCSV">Export CSV</button>
+        <button class="btn btn-ghost" id="exportGoalsJSON">Export JSON</button>
+        <button class="btn btn-danger" id="clearGoals">Clear (all goals)</button>
+      </div>
+
+      <div class="space"></div>
+      <div class="filters">
+        <span class="badge">Filter:</span>
+        <button class="btn btn-ghost" data-filter="All">All</button>
+        <button class="btn btn-ghost" data-filter="Spiritual">Spiritual</button>
+        <button class="btn btn-ghost" data-filter="Physical">Physical</button>
+        <button class="btn btn-ghost" data-filter="Emotional">Emotional</button>
+        <button class="btn btn-ghost" data-filter="Mental">Mental</button>
+        <button class="btn btn-ghost" data-filter="Financial">Financial</button>
+        <button class="btn btn-ghost" data-filter="Other">Other</button>
+        <button class="btn btn-ghost" id="showOpen">Open</button>
+        <button class="btn btn-ghost" id="showDone">Completed</button>
+      </div>
+
+      <div id="goalList" class="stack-md mt-2"></div>
+    </section>
+
+    <!-- RITUALS -->
+    <section id="sec-rituals" class="card">
+      <h2>🕊️ Rituals</h2>
+      <p class="muted">Simple recurring practices that keep your vision alive.</p>
+      <div class="form-grid cols-2">
+        <label>Title <input id="r_title" placeholder="Morning stillness 5 min" /></label>
+        <label>How often
+          <select id="r_freq"><option>Daily</option><option>Weekly</option><option>Monthly</option></select>
+        </label>
+        <label>Time (optional) <input id="r_time" type="time" /></label>
+        <label>Notes <input id="r_notes" placeholder="Scripture + breath + gratitude" /></label>
+      </div>
+      <div class="mini-toolbar">
+        <button class="btn btn-success" id="r_add">Add Ritual</button>
+        <button class="btn btn-ghost" id="r_export">Export JSON</button>
+        <button class="btn btn-danger" id="r_clear">Clear Rituals</button>
+      </div>
+      <div id="r_list" class="stack-md mt-2"></div>
+    </section>
+
+    <!-- AREAS -->
+    <section id="sec-areas" class="card">
+      <h2>🏷️ Areas</h2>
+      <p class="muted">Group images, ideas, and goals by life area. Think “chapters” of your story.</p>
+      <div class="form-grid cols-2">
+        <label>Area Name <input id="a_name" placeholder="Family / Faith / Health / Work" /></label>
+        <label>Color <input id="a_color" type="color" value="#2563eb" /></label>
+      </div>
+      <div class="mini-toolbar">
+        <button class="btn btn-success" id="a_add">Add Area</button>
+        <button class="btn btn-ghost" id="a_export">Export JSON</button>
+        <button class="btn btn-danger" id="a_clear">Clear Areas</button>
+      </div>
+      <div id="a_list" class="stack-md mt-2"></div>
+    </section>
+
+    <!-- AFFIRMATIONS -->
+    <section id="sec-affirm" class="card">
+      <h2>💬 Affirmations</h2>
+      <p class="muted">Words you want to live into. Tie them to images and rituals.</p>
+      <div class="form-grid cols-2">
+        <label>Affirmation <input id="af_text" placeholder="I move with stillness and strength." /></label>
+        <label>Attach to Tag <input id="af_tag" placeholder="e.g., faith, family" /></label>
+      </div>
+      <div class="mini-toolbar">
+        <button class="btn btn-success" id="af_add">Add Affirmation</button>
+        <button class="btn btn-ghost" id="af_export">Export JSON</button>
+        <button class="btn btn-danger" id="af_clear">Clear Affirmations</button>
+      </div>
+      <div id="af_list" class="stack-md mt-2"></div>
+    </section>
+
+    <!-- MILESTONES -->
+    <section id="sec-milestones" class="card">
+      <h2>🏁 Milestones</h2>
+      <p class="muted">Mark the moments you crossed a line: first 5K, debt milestone, temple visit, tough day you got through.</p>
+      <div class="form-grid cols-2">
+        <label>Title <input id="m_title" placeholder="First 5K" /></label>
+        <label>Date <input id="m_date" type="date" /></label>
+        <label>Tag(s) <input id="m_tags" placeholder="health, courage" /></label>
+        <label>Notes <input id="m_notes" placeholder="What this meant to me…" /></label>
+      </div>
+      <div class="mini-toolbar">
+        <button class="btn btn-success" id="m_add">Add Milestone</button>
+        <button class="btn btn-ghost" id="m_export">Export JSON</button>
+        <button class="btn btn-danger" id="m_clear">Clear Milestones</button>
+      </div>
+      <div id="m_list" class="stack-md mt-2"></div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Guided by Faith. Strengthened by Fire. Moved by Stillness.</p>
+    <p>&copy; 2025 My Life Compass Solutions — by LovingSmiles</p>
+  </footer>
+
+  <!-- Login Guard (same pattern you use elsewhere) -->
+  <script>
+  (function () {
+    try {
+      const SESS_K='lc_session_v1', MSG_K='lc_redirect_msg';
+      if (location.pathname.endsWith('auth.html')) return;
+      if (location.search.includes('noredirect')) return;
+      let raw = sessionStorage.getItem(SESS_K) || localStorage.getItem(SESS_K);
+      if (!raw){ localStorage.setItem(MSG_K,'Your session expired or you need to log in first.'); location.href='auth.html'; return; }
+      let sess=null; try{ sess=JSON.parse(raw) }catch{}
+      if(!sess || !sess.token){ localStorage.setItem(MSG_K,'Your session expired or you need to log in first.'); location.href='auth.html'; return; }
+      const ONE_DAY=86400000;
+      if(!sess.ts || Date.now()-sess.ts>ONE_DAY){
+        localStorage.removeItem(SESS_K); sessionStorage.removeItem(SESS_K);
+        localStorage.setItem(MSG_K,'Your session has expired after 24 hours. Please sign in again.');
+        location.href='auth.html';
+      }
+    } catch(e){ /* fail open */ }
+  })();
+  </script>
+
+  <!-- Page Logic -->
+  <script>
+  /* ---------- helpers ---------- */
+  const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+  const save=(k,v)=>localStorage.setItem(k, JSON.stringify(v));
+  const read=(k,fb)=>{try{return JSON.parse(localStorage.getItem(k))??fb}catch{return fb}};
+  const uid=()=>crypto?.randomUUID?.()||Math.random().toString(36).slice(2);
+  const dl=(name, text, type='text/plain')=>{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  };
+  const toCSV=(rows)=>{
+    if(!rows.length) return '';
+    const keys=Object.keys(rows[0]), esc=s=>`"${String(s??'').replace(/"/g,'""')}"`;
+    return keys.map(esc).join(',')+'\n'+rows.map(r=>keys.map(k=>esc(r[k])).join(',')).join('\n');
+  };
+  const htmlDoc=(title, body)=>`<!doctype html><meta charset="utf-8"><title>${title}</title>
+    <style>body{font:16px/1.6 system-ui,Segoe UI,Roboto,Arial,sans-serif;color:#111;background:#fff;margin:40px;max-width:900px}
+    .card{border:1px solid #ddd;border-radius:12px;padding:16px;margin:10px 0} h1,h2,h3{margin:.2rem 0} .muted{color:#666}
+    table{border-collapse:collapse;width:100%} th,td{border:1px solid #ddd;padding:8px;text-align:left} th{background:#f6f7fb}</style>
+    <h1>${title}</h1>${body}`;
+
+  function toast(msg, ms=2000){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),ms) }
+
+  /* ---------- sticky tab highlighting ---------- */
+  const tabLinks = $$('.top-tabs a');
+  function highlightTabs(){
+    const y = scrollY + (innerHeight*0.2);
+    ['sec-vision','sec-goals','sec-rituals','sec-areas','sec-affirm','sec-milestones'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el) return;
+      const top = el.offsetTop, bottom = top + el.offsetHeight;
+      const active = y>=top && y<bottom;
+      const link = tabLinks.find(a=>a.getAttribute('href')==='#'+id);
+      if(link) link.classList.toggle('active', active);
+    });
+  }
+  addEventListener('scroll', highlightTabs, {passive:true});
+  addEventListener('load', highlightTabs);
+
+  /* ---------- Vision data model (multiple boards) ---------- */
+  const VK='lcp_vision_boards_v2';
+  // { boards: [{id, name, items:[{id,url,caption,tags,ts}], created}], activeId }
+  let state = read(VK, { boards: [{ id:'default', name:'My Vision', items:[], created:Date.now() }], activeId:'default' });
+
+  const currentBoard = ()=> state.boards.find(b=>b.id===state.activeId);
+  const setActive = (id)=>{ if(state.boards.some(b=>b.id===id)){ state.activeId=id; save(VK,state); fillBoardSelect(); renderVision(); } };
+
+  function fillBoardSelect(){
+    const sel = $('#boardSelect'); sel.innerHTML='';
+    state.boards.forEach(b=>{
+      const o=document.createElement('option'); o.value=b.id; o.textContent=b.name + (b.id===state.activeId?' •':'');
+      sel.appendChild(o);
+    });
+    sel.value = state.activeId;
+  }
+
+  function renderVision(){
+    const board = currentBoard(); if(!board) return;
+    const grid = $('#visionGrid'); grid.innerHTML='';
+    let items = board.items.slice();
+
+    const tagQ = $('#tagFilter').value.trim().toLowerCase();
+    if(tagQ) items = items.filter(it => (it.tags||'').toLowerCase().split(',').map(s=>s.trim()).includes(tagQ));
+
+    const sort = $('#sortMode').value;
+    if(sort==='alpha') items.sort((a,b)=> (a.caption||'').localeCompare(b.caption||''));
+    else items.sort((a,b)=> (b.ts||0)-(a.ts||0));
+
+    if(!items.length){ grid.innerHTML='<div class="muted">No images yet on this board.</div>'; return; }
+
+    items.forEach(v=>{
+      const card = document.createElement('article');
+      card.className='vision-item'; card.draggable=true; card.dataset.id=v.id;
+      card.innerHTML = `
+        <img src="${v.url}" alt="Vision item" />
+        <footer>
+          <input type="text" placeholder="Caption…" value="${(v.caption||'').replace(/"/g,'&quot;')}" data-id="${v.id}" />
+          <input type="text" class="tag-input" placeholder="tag, tag" value="${(v.tags||'')}" data-tags="${v.id}" />
+          <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
+          <button class="btn btn-ghost" data-del="${v.id}">Delete</button>
+        </footer>`;
+      // drag
+      card.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/plain', v.id) });
+      card.addEventListener('dragover', e=>{ e.preventDefault() });
+      card.addEventListener('drop', e=>{
+        e.preventDefault();
+        moveVisionItem(e.dataTransfer.getData('text/plain'), v.id);
+      });
+      grid.appendChild(card);
+    });
+  }
+
+  function moveVisionItem(fromId, toId){
+    const b=currentBoard(); if(!b || fromId===toId) return;
+    const a=b.items.findIndex(i=>i.id===fromId), c=b.items.findIndex(i=>i.id===toId);
+    if(a<0||c<0) return;
+    const [m]=b.items.splice(a,1); b.items.splice(c,0,m);
+    save(VK,state); renderVision();
+  }
+
+  async function fileToDataURL(f){ return await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>rej(fr.error); fr.readAsDataURL(f); }); }
+  async function addImages(files){
+    if(!files?.length) return;
+    const b=currentBoard(); if(!b) return;
+    for(const f of files){ if(!f.type.startsWith('image/')) continue; const url=await fileToDataURL(f); b.items.push({id:uid(),url,caption:'',tags:'',ts:Date.now()}); }
+    save(VK,state); renderVision(); toast('Added to board');
+  }
+
+  /* ---------- Vision UI wiring ---------- */
+  function setupVisionUI(){
+    fillBoardSelect(); renderVision();
+
+    // board actions
+    $('#boardSelect').addEventListener('change', e=> setActive(e.target.value));
+    $('#boardAdd').addEventListener('click', ()=>{
+      const name = $('#boardNew').value.trim(); if(!name) return toast('Name your new board');
+      const id = uid(); state.boards.push({id, name, items:[], created:Date.now()}); state.activeId=id; save(VK,state);
+      $('#boardNew').value=''; fillBoardSelect(); renderVision(); toast('Board created');
+    });
+    $('#boardRename').addEventListener('click', ()=>{
+      const b=currentBoard(); if(!b) return;
+      const name=prompt('Rename board', b.name||''); if(name==null) return;
+      b.name=name.trim()||b.name; save(VK,state); fillBoardSelect(); renderVision();
+    });
+    $('#boardDelete').addEventListener('click', ()=>{
+      const b=currentBoard(); if(!b) return;
+      if(!confirm(`Delete board "${b.name}"? This only affects your local device.`)) return;
+      state.boards = state.boards.filter(x=>x.id!==b.id);
+      if(!state.boards.length) state.boards=[{id:'default',name:'My Vision',items:[],created:Date.now()}];
+      state.activeId = state.boards[0].id; save(VK,state); fillBoardSelect(); renderVision();
+    });
+
+    // file pick / drop / paste
+    $('#pick').addEventListener('click', ()=>$('#file').click());
+    $('#file').addEventListener('change', ()=>{ addImages($('#file').files); $('#file').value=''; });
+
+    const dz = $('#dz');
+    ;['dragenter','dragover'].forEach(evt=>dz.addEventListener(evt, e=>{ e.preventDefault(); dz.classList.add('drag') }));
+    ;['dragleave','drop'].forEach(evt=>dz.addEventListener(evt, e=>{ e.preventDefault(); dz.classList.remove('drag') }));
+    dz.addEventListener('drop', e=> addImages(e.dataTransfer.files));
+
+    document.addEventListener('paste', e=>{
+      const items = e.clipboardData?.items || []; const imgs=[];
+      for(const it of items){ if(it.type?.startsWith('image/')) imgs.push(it.getAsFile()) }
+      if(imgs.length) addImages(imgs);
+    });
+
+    // live editing (captions & tags) + delete
+    $('#visionGrid').addEventListener('input', e=>{
+      const id=e.target.getAttribute('data-id'); const tg=e.target.getAttribute('data-tags');
+      const b=currentBoard(); if(!b) return;
+      const it=b.items.find(x=>x.id=== (id||tg)); if(!it) return;
+      if(id) it.caption = e.target.value;
+      if(tg) it.tags = e.target.value;
+      save(VK,state);
+    });
+    $('#visionGrid').addEventListener('click', e=>{
+      const id=e.target.getAttribute('data-del'); if(!id) return;
+      const b=currentBoard(); if(!b) return;
+      b.items = b.items.filter(x=>x.id!==id); save(VK,state); renderVision(); toast('Removed');
+    });
+
+    // filters / sort
+    $('#tagFilter').addEventListener('input', renderVision);
+    $('#sortMode').addEventListener('change', renderVision);
+
+    // slideshow
+    $('#playboard').addEventListener('click', ()=>{
+      const b=currentBoard(); if(!b || !b.items.length) return;
+      let i=0; const win = window.open('', '_blank');
+      const html = `<!doctype html><meta charset="utf-8"><title>${b.name} — Slideshow</title>
+        <style>html,body{height:100%;margin:0;background:#000} img{display:block;max-width:100%;max-height:100%;margin:auto}</style>
+        <body><img id="ph"><script>
+          const pics=${JSON.stringify(b.items.map(x=>x.url))};
+          let i=0; const ph=document.getElementById('ph');
+          function show(){ ph.src=pics[i%pics.length]; i++ }
+          show(); setInterval(show, 3500);
+        <\/script></body>`;
+      win.document.write(html);
+    });
+
+    // board exports / import / clear
+    $('#exportVisionJSON').addEventListener('click', ()=>{
+      const b=currentBoard(); dl(`${b.name.replace(/\s+/g,'_').toLowerCase()}_vision.json`, JSON.stringify(b,null,2), 'application/json');
+    });
+    $('#importVision').addEventListener('change', async ()=>{
+      const f=$('#importVision').files[0]; if(!f) return;
+      const text=await f.text(); try{
+        const arr=JSON.parse(text); if(!Array.isArray(arr)) throw 0;
+        const b=currentBoard(); b.items=arr; save(VK,state); renderVision(); toast('Imported to current board');
+      }catch{ toast('Invalid JSON') }
+      $('#importVision').value='';
+    });
+    $('#exportVisionHTML').addEventListener('click', ()=>{
+      const b=currentBoard();
+      const body = `<div class="card"><h2>${b.name}</h2>
+        <div style="display:grid;gap:8px;grid-template-columns:repeat(3,1fr)">
+          ${b.items.map(v=>`<figure style="border:1px solid #ddd;border-radius:8px;padding:6px">
+            <img src="${v.url}" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:6px"/>
+            ${(v.caption?`<figcaption style="color:#444;margin-top:6px">${v.caption.replace(/</g,'&lt;')}</figcaption>`:'')}
+          </figure>`).join('')}
+        </div></div>`;
+      dl(`${b.name.replace(/\s+/g,'_').toLowerCase()}_vision.html`, htmlDoc(`Vision — ${b.name}`, body), 'text/html');
+    });
+    $('#clearVision').addEventListener('click', ()=>{
+      const b=currentBoard(); if(!b) return;
+      if(confirm(`Clear all images on "${b.name}" (local only)?`)){ b.items=[]; save(VK,state); renderVision(); }
+    });
+  }
+
+  /* ---------- Goals ---------- */
+  const GK='lcp_goals_v1';
+  let goals = read(GK, []); // {id,title,cat,due,prog,done,ts}
+  let currentFilter='All', currentState='All';
+
+  function renderGoals(filter=currentFilter, state=currentState){
+    currentFilter=filter; currentState=state;
+    const host=$('#goalList'); host.innerHTML='';
+    let list = goals.slice().sort((a,b)=>(a.done - b.done)|| (a.due||'').localeCompare(b.due||''));
+    if(filter!=='All') list=list.filter(g=>g.cat===filter);
+    if(state==='Open') list=list.filter(g=>!g.done);
+    if(state==='Done') list=list.filter(g=>g.done);
+
+    if(!list.length){ host.innerHTML='<div class="muted">No goals yet.</div>'; return; }
+
+    list.forEach(g=>{
+      const row=document.createElement('div'); row.className='goal-row card'; row.dataset.id=g.id;
+      row.innerHTML=`
+        <div><strong>${g.title||'(Untitled goal)'}</strong> ${g.done?'<span class="badge">Done</span>':''}
+          <div class="muted">Created: ${new Date(g.ts).toLocaleDateString()}</div></div>
+        <div><span class="badge">${g.cat||'Other'}</span></div>
+        <div><span class="muted">Due</span><br>${g.due||'—'}</div>
+        <div><span class="muted">Progress</span><br>${g.prog||0}%</div>
+        <div class="actions">
+          <button class="btn btn-ghost" data-act="edit">Edit</button>
+          <button class="btn btn-ghost" data-act="toggle">${g.done?'Undo':'Complete'}</button>
+        </div>
+        <div class="actions">
+          <button class="btn btn-ghost" data-act="inc">+10%</button>
+          <button class="btn btn-ghost" data-act="dec">-10%</button>
+          <button class="btn btn-danger" data-act="del">Delete</button>
+        </div>`;
+      host.appendChild(row);
+    });
+  }
+
+  function setupGoalsUI(){
+    $('#g_add').addEventListener('click', ()=>{
+      const title=$('#g_title').value.trim(); const cat=$('#g_cat').value;
+      const due=$('#g_due').value; const prog=Math.max(0,Math.min(100,parseInt($('#g_prog').value||'0',10)));
+      if(!title) return toast('Please enter a goal title');
+      goals.push({id:uid(), title, cat, due, prog, done:false, ts:Date.now()}); save(GK,goals);
+      $('#g_title').value=''; $('#g_due').value=''; $('#g_prog').value='0'; renderGoals();
+    });
+    $$('.filters [data-filter]').forEach(btn=>btn.addEventListener('click',()=>renderGoals(btn.getAttribute('data-filter'), currentState)));
+    $('#showOpen').addEventListener('click', ()=>renderGoals(currentFilter,'Open'));
+    $('#showDone').addEventListener('click', ()=>renderGoals(currentFilter,'Done'));
+    $('#goalList').addEventListener('click', e=>{
+      const act=e.target.getAttribute('data-act'); if(!act) return;
+      const id=e.target.closest('.goal-row')?.dataset.id; const g=goals.find(x=>x.id===id); if(!g) return;
+      if(act==='toggle'){ g.done=!g.done; if(g.done) g.prog=100 }
+      if(act==='inc'){ g.prog=Math.min(100,(g.prog||0)+10) }
+      if(act==='dec'){ g.prog=Math.max(0,(g.prog||0)-10) }
+      if(act==='del'){ goals=goals.filter(x=>x.id!==id) }
+      if(act==='edit'){
+        const t=prompt('Edit title', g.title||''); if(t!=null) g.title=t.trim();
+        const d=prompt('Edit due (YYYY-MM-DD)', g.due||''); if(d!=null) g.due=d.trim();
+        const p=parseInt(prompt('Edit progress 0–100', g.prog||0) ?? g.prog,10); if(!Number.isNaN(p)) g.prog=Math.max(0,Math.min(100,p));
+      }
+      save(GK,goals); renderGoals(currentFilter,currentState);
+    });
+    $('#exportGoalsJSON').addEventListener('click', ()=>dl('goals.json', JSON.stringify(goals,null,2), 'application/json'));
+    $('#exportGoalsCSV').addEventListener('click', ()=>{
+      const csv = toCSV(goals.map(g=>({title:g.title,category:g.cat,due:g.due,progress:g.prog,completed:g.done,created:new Date(g.ts).toISOString()})));
+      dl('goals.csv', csv, 'text/csv');
+    });
+    $('#exportGoalsHTML').addEventListener('click', ()=>{
+      const body = `<div class="card"><h2>Goals</h2>${
+        goals.length? `<table><tr><th>Title</th><th>Category</th><th>Due</th><th>Progress</th><th>Status</th></tr>`+
+        goals.map(g=>`<tr><td>${(g.title||'').replace(/</g,'&lt;')}</td><td>${g.cat}</td><td>${g.due||'—'}</td><td>${g.prog||0}%</td><td>${g.done?'Done':'Open'}</td></tr>`).join('')+
+        `</table>` : `<p class="muted">No goals yet.</p>`
+      }</div>`;
+      dl('goals.html', htmlDoc('Goals — Life Compass Pro', body), 'text/html');
+    });
+    $('#clearGoals').addEventListener('click', ()=>{ if(confirm('Clear all goals (local only)?')){ goals=[]; save(GK,goals); renderGoals(); } });
+    renderGoals();
+  }
+
+  /* ---------- Rituals / Areas / Affirmations / Milestones ---------- */
+  const RK='lcp_rituals', AK='lcp_areas', AFK='lcp_affirm', MK='lcp_milestones';
+  let rituals=read(RK,[]), areas=read(AK,[]), affs=read(AFK,[]), miles=read(MK,[]);
+
+  function renderSimpleList(hostId, list, build){
+    const host=$(hostId); host.innerHTML='';
+    if(!list.length){ host.innerHTML='<div class="muted">Nothing here yet.</div>'; return; }
+    list.forEach((x,i)=>host.appendChild(build(x,i)));
+  }
+
+  function setupSimpleSections(){
+    // Rituals
+    $('#r_add').addEventListener('click', ()=>{
+      rituals.push({id:uid(), title:$('#r_title').value.trim(), freq:$('#r_freq').value, time:$('#r_time').value, notes:$('#r_notes').value.trim(), ts:Date.now()});
+      save(RK,rituals); $('#r_title').value=''; $('#r_notes').value=''; renderRituals();
+    });
+    $('#r_export').addEventListener('click', ()=>dl('rituals.json', JSON.stringify(rituals,null,2), 'application/json'));
+    $('#r_clear').addEventListener('click', ()=>{ if(confirm('Clear rituals?')){ rituals=[]; save(RK,rituals); renderRituals(); } });
+    function renderRituals(){
+      renderSimpleList('#r_list', rituals, (r)=> {
+        const d=document.createElement('div'); d.className='card'; 
+        d.innerHTML=`<strong>${r.title||'(untitled)'}</strong> <span class="badge">${r.freq}</span> ${r.time?`<span class="badge">${r.time}</span>`:''}
+        ${r.notes?`<div class="muted">${r.notes.replace(/</g,'&lt;')}</div>`:''}
+        <div class="stack-sm"><button class="btn btn-ghost" data-del="${r.id}">Delete</button></div>`;
+        d.querySelector('[data-del]').addEventListener('click', ()=>{ rituals=rituals.filter(x=>x.id!==r.id); save(RK,rituals); renderRituals(); });
+        return d;
+      });
+    }
+
+    // Areas
+    $('#a_add').addEventListener('click', ()=>{
+      areas.push({id:uid(), name:$('#a_name').value.trim(), color:$('#a_color').value, ts:Date.now()});
+      save(AK,areas); $('#a_name').value=''; renderAreas();
+    });
+    $('#a_export').addEventListener('click', ()=>dl('areas.json', JSON.stringify(areas,null,2), 'application/json'));
+    $('#a_clear').addEventListener('click', ()=>{ if(confirm('Clear areas?')){ areas=[]; save(AK,areas); renderAreas(); } });
+    function renderAreas(){
+      renderSimpleList('#a_list', areas, (a)=> {
+        const d=document.createElement('div'); d.className='card';
+        d.innerHTML=`<span class="badge" style="background:${a.color}; color:#fff; border-color:rgba(0,0,0,.15)"> </span>
+          <strong>${a.name||'(untitled)'}</strong>
+          <div class="stack-sm"><button class="btn btn-ghost" data-del="${a.id}">Delete</button></div>`;
+        d.querySelector('[data-del]').addEventListener('click', ()=>{ areas=areas.filter(x=>x.id!==a.id); save(AK,areas); renderAreas(); });
+        return d;
+      });
+    }
+
+    // Affirmations
+    $('#af_add').addEventListener('click', ()=>{
+      affs.push({id:uid(), text:$('#af_text').value.trim(), tag:$('#af_tag').value.trim(), ts:Date.now()});
+      save(AFK,affs); $('#af_text').value=''; renderAff();
+    });
+    $('#af_export').addEventListener('click', ()=>dl('affirmations.json', JSON.stringify(affs,null,2), 'application/json'));
+    $('#af_clear').addEventListener('click', ()=>{ if(confirm('Clear affirmations?')){ affs=[]; save(AFK,affs); renderAff(); } });
+    function renderAff(){
+      renderSimpleList('#af_list', affs, (a)=> {
+        const d=document.createElement('div'); d.className='card';
+        d.innerHTML=`<strong>“${a.text.replace(/</g,'&lt;')}”</strong> ${a.tag?`<span class="badge">${a.tag}</span>`:''}
+        <div class="stack-sm"><button class="btn btn-ghost" data-del="${a.id}">Delete</button></div>`;
+        d.querySelector('[data-del]').addEventListener('click', ()=>{ affs=affs.filter(x=>x.id!==a.id); save(AFK,affs); renderAff(); });
+        return d;
+      });
+    }
+
+    // Milestones
+    $('#m_add').addEventListener('click', ()=>{
+      miles.push({id:uid(), title:$('#m_title').value.trim(), date:$('#m_date').value, tags:$('#m_tags').value.trim(), notes:$('#m_notes').value.trim(), ts:Date.now()});
+      save(MK,miles); $('#m_title').value=''; $('#m_notes').value=''; renderMiles();
+    });
+    $('#m_export').addEventListener('click', ()=>dl('milestones.json', JSON.stringify(miles,null,2), 'application/json'));
+    $('#m_clear').addEventListener('click', ()=>{ if(confirm('Clear milestones?')){ miles=[]; save(MK,miles); renderMiles(); } });
+    function renderMiles(){
+      renderSimpleList('#m_list', miles, (m)=> {
+        const d=document.createElement('div'); d.className='card';
+        d.innerHTML=`<strong>${m.title||'(untitled)'}</strong> ${m.date?`<span class="badge">${m.date}</span>`:''}
+        ${m.tags?`<span class="badge">${m.tags}</span>`:''}
+        ${m.notes?`<div class="muted">${m.notes.replace(/</g,'&lt;')}</div>`:''}
+        <div class="stack-sm"><button class="btn btn-ghost" data-del="${m.id}">Delete</button></div>`;
+        d.querySelector('[data-del]').addEventListener('click', ()=>{ miles=miles.filter(x=>x.id!==m.id); save(MK,miles); renderMiles(); });
+        return d;
+      });
+    }
+
+    // initial renders
+    renderRituals(); renderAreas(); renderAff(); renderMiles();
+  }
+
+  /* ---------- init ---------- */
+  document.addEventListener('DOMContentLoaded', ()=>{
+    setupVisionUI();
+    setupGoalsUI();
+    setupSimpleSections();
+  });
+
+  // logout (works if header is included inline or via iframe)
+  document.addEventListener('click', (e)=>{
+    if(e.target?.id==='logoutBtn'){
+      e.preventDefault();
+      localStorage.removeItem('lc_session_v1');
+      sessionStorage.removeItem('lc_session_v1');
+      alert('✅ You have been logged out.');
+      (window.top||window).location.href='auth.html';
+    }
+  });
+  </script>
+
+  <!-- Include shared header loader -->
+  <script src="include.js" defer></script>
+  <script src="lifecompass.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</body>
+</html>
