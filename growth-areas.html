@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/assets/search.css">
+<script>
+  // Option A: point to a JSON list of your pages (recommended)
+  window.LCP_SEARCH_CONFIG = { indexUrl: "/pages.json", cacheVersion: "v1" };
+
+  // Option B (fallback): if no pages.json, it will auto-read links in your <nav> that have data-path=
+</script>
+<script defer src="/assets/search.js"></script>
+    <link rel="stylesheet" href="lcp-nav.css">
+    <script src="lcp-nav.js" defer></script>
+  <meta charset="utf-8"/>
+  <title>My Life Compass Solutions — Growth Areas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="theme-color" content="#2563eb"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <script src="mood-switcher.js" defer></script>
+
+  <style>
+    /* ===== Theme tokens & base layout ===== */
+    :root{
+      --bg:#0b1020; --card:#111830; --ink:#e8eefc; --muted:#b9c4e8; --accent:#2563eb;
+      --good:#22c55e; --warn:#f59e0b; --danger:#ef4444; --border:#2a3563; --soft:#152041;
+      --chip:#1b2344; --chip-on:#0f172a; --radius:14px;
+    }
+    *{ box-sizing:border-box }
+    html,body{ background:var(--bg); color:var(--ink); font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif; margin:0; line-height:1.35 }
+    main.wrap{ width:min(1200px,94vw); margin-inline:auto; padding:16px 16px 28px }
+    h1{ font-size:clamp(22px,3vw,34px); margin:12px 0 6px }
+    p.sub{ color:var(--muted); margin:0 0 16px }
+
+    .toolbar{ display:grid; gap:8px; grid-template-columns:1fr 1fr; align-items:center; margin-bottom:6px }
+    .toolbar .row{ display:flex; gap:8px; flex-wrap:wrap }
+
+    input[type="search"], select, button, .btn, textarea, input[type="text"], input[type="number"]{
+      background:var(--chip); color:var(--ink); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font:inherit;
+    }
+    input[type="search"]{ width:100% }
+    button,.btn{ cursor:pointer }
+    button.primary{ background:var(--accent); border-color:transparent }
+    button.good{ background:var(--good); border-color:transparent }
+    button.warn{ background:var(--warn); border-color:transparent }
+    button.danger{ background:var(--danger); border-color:transparent }
+
+    section.card{
+      background:linear-gradient(180deg, var(--card), var(--soft));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:16px; margin:12px 0;
+    }
+    section.card h2{ font-size:clamp(18px,2.4vw,24px); margin:0 0 10px }
+
+    .grid{ display:grid; gap:10px; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)) }
+    .chip{ display:flex; flex-direction:column; gap:8px; background:var(--chip); border:1px solid var(--border); padding:12px; border-radius:12px }
+    .chip.on{ background:var(--chip-on); border-color:var(--accent) }
+    .chip .name{ font-weight:600 }
+    .minirow{ display:flex; gap:6px; flex-wrap:wrap }
+    .mini{ border-radius:999px; border:1px solid var(--border); padding:6px 10px; font-size:12px; background:rgba(255,255,255,.05) }
+    .tagrow{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px }
+    .tag{ background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:999px; padding:6px 10px; cursor:pointer }
+    .tag.on{ color:var(--ink); background:rgba(37,99,235,.15); border-color:var(--accent) }
+
+    .two{ display:grid; gap:12px; grid-template-columns:1.2fr .8fr }
+    @media (max-width:900px){ .toolbar{ grid-template-columns:1fr } .two{ grid-template-columns:1fr } }
+
+    .lists{ display:grid; gap:12px; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)) }
+    .list{ border:1px solid var(--border); border-radius:12px; padding:10px; background:rgba(255,255,255,.03) }
+    .list h3{ margin:0 0 6px; font-size:16px }
+    .pill{ display:inline-flex; align-items:center; gap:6px; background:var(--chip); border:1px solid var(--border); border-radius:999px; padding:6px 10px; margin:6px 6px 0 0; font-size:13px }
+    .pill .x{ background:transparent; border:0; color:var(--muted); cursor:pointer }
+    .note{ padding:10px 12px; border:1px dashed var(--border); border-radius:10px; background:rgba(255,255,255,.03) }
+    .hr{ height:1px;background:linear-gradient(90deg, transparent, var(--border), transparent); margin:10px 0 }
+    .fine{ font-size:12px; color:var(--muted) }
+    .goalgrid{ display:grid; gap:8px; grid-template-columns:1fr 1fr }
+    .goalgrid > div{ display:flex; flex-direction:column; gap:6px }
+    @media (max-width:800px){ .goalgrid{ grid-template-columns:1fr } }
+
+    /* ===== Compact Tabs + Accordions ===== */
+    .tab-strip {
+      display:flex; gap:8px; align-items:center; overflow:auto; padding:6px; margin:8px 0 12px;
+      scrollbar-width:thin;
+    }
+    .tab{ padding:8px 14px; border-radius:999px; border:1px solid var(--border); background:var(--chip); color:var(--ink); cursor:pointer; white-space:nowrap; }
+    .tab.active{ background:rgba(37,99,235,.18); border-color:var(--accent) }
+
+    .accordion-header {
+      width:100%; text-align:left; padding:10px 12px; font-weight:600; cursor:pointer;
+      background:var(--chip); border:1px solid var(--border); border-radius:10px;
+    }
+    .accordion-header:hover { filter:brightness(1.08) }
+    .accordion-content { display:none; padding:10px 0 0 }
+    .accordion-header.active + .accordion-content { display:block }
+
+    /* ===== Color picker UI ===== */
+    #bgPicker {
+      inline-size:40px; block-size:40px; border:none; border-radius:8px; cursor:pointer;
+    }
+    label[for="bgPicker"]{ font-weight:600; color:var(--ink); }
+
+    /* ===== Stop/Replacement selection highlight ===== */
+    .btn.selected {
+      outline: 0;
+      border-color: var(--danger);
+      box-shadow: 0 0 0 2px var(--danger) inset, 0 0 0 2px rgba(239,68,68,.35);
+    }
+    .btn.good.selected {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 2px var(--danger) inset, 0 0 0 2px rgba(239,68,68,.35);
+    }
+
+    /* ===== Custom Negative Habits ===== */
+    .nh-form{ display:grid; gap:10px; grid-template-columns: 1fr 1fr; }
+    .nh-form .full{ grid-column:1/-1 }
+    .nh-grid{ display:grid; gap:10px; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); }
+    .nh-card{ border:1px solid var(--border); background:rgba(255,255,255,.03); border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px }
+    .range-row{ display:grid; gap:6px; grid-template-columns: 1fr auto; align-items:center }
+    .range-row input[type="range"]{ width:100% }
+    .nh-title{ font-weight:700 }
+    .nh-actions{ display:flex; gap:8px; flex-wrap:wrap }
+
+    /* ===== Fireworks canvas overlay ===== */
+    #fx{
+      position:fixed; inset:0; pointer-events:none; z-index:9999; display:none;
+    }
+  </style>
+</head>
+<body class="growthareas">
+
+<!-- Simple Nav -->
+<nav class="site-nav" aria-label="Primary" style="display:flex; gap:12px; align-items:center; padding:10px 16px;">
+  <a class="brand" href="index.html" style="font-weight:700; color:var(--ink); text-decoration:none;">Life Compass Pro</a>
+  <div class="links" style="display:flex; gap:10px;">
+    <a href="calendar.html" style="color:var(--muted); text-decoration:none;">Calendar</a>
+    <a href="hobbies.html" style="color:var(--muted); text-decoration:none;">Hobbies</a>
+    <a href="growth-areas.html" style="color:var(--ink); text-decoration:none;">Growth Areas</a>
+  </div>
+  <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+    <label for="bgPicker">Background:</label>
+    <input type="color" id="bgPicker" value="#0b1020">
+  </div>
+</nav>
+
+<!-- Fireworks canvas -->
+<canvas id="fx"></canvas>
+
+<main class="wrap">
+  <header>
+    <h1>Growth Areas</h1>
+    <p class="sub">Design your growth across every dimension. Build SMART goals, track focuses, retire anti-habits, and replace them with better ones — with progress tracking and notes.</p>
+
+    <div class="toolbar">
+      <div class="row">
+        <input id="search" type="search" placeholder="Search growth topics (e.g., pull-up training, debt payoff, forgiveness) …" aria-label="Search growth topics"/>
+      </div>
+      <div class="row">
+        <button id="exportBtn" class="btn">Export JSON</button>
+        <label class="btn" for="importFile">Import JSON</label>
+        <input id="importFile" type="file" accept="application/json" hidden />
+        <button id="wipe" class="btn danger" title="Clear lists only (keeps catalog)">Reset My Lists</button>
+      </div>
+    </div>
+
+    <!-- Dynamic Tab Strip -->
+    <div id="tabStrip" class="tab-strip" role="tablist" aria-label="Growth categories"></div>
+  </header>
+
+  <section class="card two">
+    <div>
+      <h2>Browse Growth Topics</h2>
+      <div id="accordionBox" aria-live="polite"></div>
+    </div>
+
+    <div>
+      <h2>SMART Goal Builder</h2>
+      <div class="note">
+        <div class="goalgrid">
+          <div><label class="fine">Goal title</label><input id="gTitle" type="text" placeholder="e.g., Do 1 strict pull-up"/></div>
+          <div><label class="fine">Category</label><select id="gCategory"></select></div>
+          <div><label class="fine">Why (Meaning)</label><input id="gWhy" type="text" placeholder="e.g., Feel strong and confident"/></div>
+          <div><label class="fine">Measure</label><input id="gMeasure" type="text" placeholder="e.g., 1 clean rep from dead hang"/></div>
+          <div><label class="fine">Actions</label><textarea id="gActions" rows="3" placeholder="e.g., 3x/week: scap pull-ups, negatives, lat pulldowns"></textarea></div>
+          <div><label class="fine">Timeframe</label><input id="gTime" type="text" placeholder="e.g., by Dec 15"/></div>
+        </div>
+        <div class="tagrow" style="margin-top:8px">
+          <button id="buildSmart" class="primary">Create SMART Goal → Active Focus</button>
+          <button id="ideaToBacklog" class="btn">Save as Idea → Backlog</button>
+        </div>
+      </div>
+
+      <h2>Your Lists</h2>
+      <div class="lists">
+        <div class="list" id="list-active">
+          <h3>🔥 Active Focus <span class="fine" id="count-active">(0)</span></h3>
+          <div class="items"></div>
+        </div>
+        <div class="list" id="list-next">
+          <h3>🧪 Next Up <span class="fine" id="count-next">(0)</span></h3>
+          <div class="items"></div>
+        </div>
+        <div class="list" id="list-backlog">
+          <h3>💡 Backlog Ideas <span class="fine" id="count-backlog">(0)</span></h3>
+          <div class="items"></div>
+        </div>
+        <div class="list" id="list-done">
+          <h3>✅ Completed <span class="fine" id="count-done">(0)</span></h3>
+          <div class="items"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STOP / REPLACEMENT + CUSTOM NEGATIVE HABITS -->
+  <section class="card">
+    <h2>“Stop / Anti-Habits” → Healthier Replacements</h2>
+    <p class="fine">Click a red chip to mark as <em>Completed</em>. Click green to queue as <em>Next Up</em>. Selected buttons highlight red.</p>
+    <div id="stopGrid" class="tagrow"></div>
+    <div class="hr"></div>
+    <div class="tagrow">
+      <button id="retireAllStops" class="danger">Move All Stops → Completed</button>
+      <button id="tryAllReplacements" class="good">Add All Replacements → Next Up</button>
+    </div>
+
+    <div class="hr"></div>
+    <h3>Add Your Own Negative Habits</h3>
+    <p class="fine">Not seeing yours? Add it below — include how to stop, a better habit, track progress (Day/Week/Month/Year), and add notes.</p>
+
+    <div class="tagrow" id="nh-ideas"></div>
+
+    <div class="note" style="margin-top:10px;">
+      <form id="nh-form" class="nh-form">
+        <div class="full">
+          <label class="fine">Negative habit (name)</label>
+          <input id="nh-name" type="text" placeholder="e.g., Late-night doomscrolling"/>
+        </div>
+        <div>
+          <label class="fine">How will you stop it?</label>
+          <input id="nh-stop" type="text" placeholder="e.g., Phone in kitchen at 10pm"/>
+        </div>
+        <div>
+          <label class="fine">Better replacement</label>
+          <input id="nh-replace" type="text" placeholder="e.g., Read for 20 minutes"/>
+        </div>
+
+        <div class="full"><strong class="fine">Progress (0%–100%)</strong></div>
+
+        <div class="range-row">
+          <label class="fine">Day</label>
+          <input id="nh-d" type="range" min="0" max="100" value="0" />
+        </div>
+        <div class="range-row">
+          <label class="fine">Week</label>
+          <input id="nh-w" type="range" min="0" max="100" value="0" />
+        </div>
+        <div class="range-row">
+          <label class="fine">Month</label>
+          <input id="nh-m" type="range" min="0" max="100" value="0" />
+        </div>
+        <div class="range-row">
+          <label class="fine">Year</label>
+          <input id="nh-y" type="range" min="0" max="100" value="0" />
+        </div>
+
+        <div class="full">
+          <label class="fine">Notes / comments</label>
+          <textarea id="nh-notes" rows="3" placeholder="Thoughts, reflections, triggers, wins…"></textarea>
+        </div>
+
+        <div class="nh-actions full">
+          <button type="button" id="nh-save" class="primary">Save Habit</button>
+          <button type="reset" class="btn">Clear</button>
+        </div>
+      </form>
+    </div>
+
+    <h3 style="margin-top:12px;">Your Negative Habit Cards</h3>
+    <div id="nh-list" class="nh-grid"></div>
+  </section>
+
+  <section class="card">
+    <h2>Notes & Prompts</h2>
+    <div class="note">
+      <p class="fine">
+        Quick prompts: What one action this week would make the biggest difference?
+        Where am I over-complicating the path? Who can help? What should I stop?
+      </p>
+      <textarea id="notes" rows="6" placeholder="Capture reflections or weekly reviews here… (auto-saves)"></textarea>
+    </div>
+  </section>
+</main>
+
+<script>
+/* =======================
+   Data (Topics, Stops)
+   ======================= */
+const CATALOG = {
+  "Physical Health": ["Pull-up training","Couch-to-5K","Strength (5x5)","Mobility routine","Posture fixes","Daily steps 8k+","PT/rehab plan","Core stability","Zone 2 cardio","Sleep consistency","Hydration habit"],
+  "Mental & Emotional": ["CBT thought record","Mindfulness 10-min","Gratitude 3x","Journaling daily","Breathwork box 4-4-4-4","Anxiety toolkit","Values inventory","Self-compassion practice","Boundaries practice","Fun scheduling"],
+  "Spiritual": ["Prayer routine","Scripture study","Temple planning","Service hour weekly","Sabbath rest plan","Meditation (loving-kindness)"],
+  "Relationships": ["Weekly date plan","Check-in ritual","Repair conversation skills","Attachment education","Love languages practice","Conflict rules"],
+  "Family & Parenting": ["Family council","1:1 kid time","Digital rules","Chore system","Budget review night","Family traditions calendar"],
+  "Learning & Career": ["Course completion map","Portfolio refresh","Public speaking reps","Networking outreach","Certification plan","Daily read 20-min"],
+  "Finance": ["Zero-based budget","Debt snowball","Emergency fund build","Investing education","Credit score repair","No-spend challenge"],
+  "Home & Environment": ["Weekly reset","Declutter room","Deep clean cycle","Safety checklist","Garden start","Energy savings"],
+  "Creativity": ["Daily sketch","Songwriting reps","Photography walk","Blog weekly","Design challenge","Maker project"],
+  "Service & Community": ["Volunteer monthly","Neighborhood help list","Mentor/teach","Community group join","Donation plan"],
+  "Digital Hygiene": ["App limits","Home screen cleanup","Email zero weekly","Desktop hygiene","Password manager","Backups"],
+  "Time & Execution": ["Weekly review","Time blocking","Next actions list","2-minute rule","Pomodoro sets","Focus sprints"],
+  "Character & Virtues": ["Honesty reflections","Courage reps","Patience practice","Humility checks","Generosity plan","Integrity journal"],
+  "Recovery / Stopping": ["Trigger map","Urge surfing","Accountability texts","Meeting attendance","Relapse plan","Daily check-in"],
+  "Sleep": ["Fixed bedtime","Morning light","Caffeine cutoff","Wind-down ritual","Bedroom cool/dark","No screens 60m"],
+  "Nutrition": ["Protein target","Veggies at lunch","Meal prep Sunday","Water before meals","Mindful eating","Food log"],
+  "Therapy / Clinician": ["Homework completion","Skill practice log","Psychoeducation module","Track meds","Session prep notes","Outcome measures"],
+  "Executive Function / ADHD": ["Externalize tasks","Use timers","Micro-steps","Body doubling","Visual cues","Reward schedule"],
+  "Social Skills & Communication": ["Active listening","Open-ended questions","Reflective statements","Assertive requests","Apology repair","Gratitude notes"],
+  "Community & Faith in Action": ["Service project plan","Visit the sick/elderly","Food bank shift","Community clean-up","Support group facilitation"]
+};
+
+const STOPS = {
+  "All-nighters + doom scroll": ["Fixed bedtime","No screens 60m","Morning light"],
+  "Skipping workouts": ["Time blocking","Micro-steps","Focus sprints"],
+  "Impulse spending": ["No-spend challenge","Zero-based budget","Wishlist cooling-off"],
+  "Toxic arguing": ["Active listening","Repair conversation skills","Gratitude notes"],
+  "Avoiding hard tasks": ["2-minute rule","Pomodoro sets","Next actions list"],
+  "Isolation": ["Community group join","Volunteer monthly","Weekly date plan"]
+};
+
+const NEGATIVE_IDEAS = [
+  "Always late", "Phone in bed", "Sugary drinks daily", "Endless YouTube shorts", "Gossiping",
+  "Door-dash habit", "Skipping prayers", "Messy car", "Buying toys when stressed", "Overcommitting",
+  "Ignoring budget", "Sleeping past alarm", "No water all day", "Gaming till 3am", "Leaving dishes"
+];
+
+/* =======================
+   State & Storage Keys
+   ======================= */
+const STATE = {
+  search:"", tab:"All",
+  active:new Set(), next:new Set(), backlog:new Set(), done:new Set(),
+  notes:""
+};
+const STORAGE_KEY = "lcp_growth_v1";
+const THEME_KEY   = "userBgColor_growth";
+const NH_KEY      = "lcp_negative_habits_v1"; // array of habit objects
+
+/* =======================
+   DOM helpers
+   ======================= */
+const $ = s => document.querySelector(s);
+const el = (t, a={}, ...kids) => {
+  const n = document.createElement(t);
+  Object.entries(a).forEach(([k,v])=>{
+    if(k==="class") n.className=v;
+    else if(k==="dataset") Object.assign(n.dataset,v);
+    else if(k.startsWith("on") && typeof v==="function") n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k,v);
+  });
+  kids.forEach(k=> n.append(k?.nodeType? k : document.createTextNode(k)));
+  return n;
+};
+
+/* =======================
+   Save/Load
+   ======================= */
+function saveMain(){
+  const obj = {
+    active:[...STATE.active], next:[...STATE.next], backlog:[...STATE.backlog], done:[...STATE.done],
+    notes: $("#notes")?.value || ""
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+  updateCounts();
+}
+function loadMain(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return;
+  try{
+    const obj = JSON.parse(raw);
+    ["active","next","backlog","done"].forEach(k=> STATE[k] = new Set(obj[k]||[]));
+    STATE.notes = obj.notes || "";
+  }catch(e){}
+}
+
+function saveNH(list){
+  localStorage.setItem(NH_KEY, JSON.stringify(list));
+}
+function loadNH(){
+  try { return JSON.parse(localStorage.getItem(NH_KEY)||"[]"); } catch(e){ return []; }
+}
+
+/* =======================
+   Tabs + Accordions
+   ======================= */
+function renderTabs(){
+  const strip = $("#tabStrip");
+  strip.innerHTML = "";
+  const cats = ["All", ...Object.keys(CATALOG)];
+  cats.forEach(cat=>{
+    const b = el("button", {class:`tab${STATE.tab===cat?' active':''}`, role:"tab", "aria-selected": STATE.tab===cat ? "true" : "false"});
+    b.textContent = cat;
+    b.addEventListener("click", ()=>{
+      STATE.tab = cat; renderTabs(); renderAccordions();
+    });
+    strip.append(b);
+  });
+}
+
+function mini(text, fn){ return el("button",{class:"mini", onClick:fn, title:text}, text); }
+
+function chipFor(cat, name){
+  const chip = el("div",{class:"chip","data-cat":cat,"data-name":name,tabindex:"0",role:"group"});
+  chip.append(
+    el("div",{class:"name"}, name),
+    el("div",{class:"fine"}, cat),
+    el("div",{class:"minirow"},
+      mini("+ Active", ()=>move(name,"active")),
+      mini("→ Next", ()=>move(name,"next")),
+      mini("💡 Backlog", ()=>move(name,"backlog")),
+      mini("✅ Done", ()=>move(name,"done"))
+    )
+  );
+  chip.addEventListener("click", ()=>chip.classList.toggle("on"));
+  chip.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); chip.click(); }});
+  return chip;
+}
+
+function renderAccordions(){
+  const box = $("#accordionBox");
+  box.innerHTML = "";
+  const q = STATE.search.trim().toLowerCase();
+  const cats = STATE.tab==="All" ? Object.keys(CATALOG) : [STATE.tab];
+
+  cats.forEach(cat=>{
+    const items = (CATALOG[cat]||[]).filter(name=> !q || name.toLowerCase().includes(q) || cat.toLowerCase().includes(q));
+    if(items.length===0) return;
+
+    const header = el("button",{class:"accordion-header", "aria-expanded":"false"}, `${cat} (${items.length})`);
+    const content = el("div",{class:"accordion-content"});
+    const grid = el("div",{class:"grid"});
+
+    items.forEach(name=> grid.append(chipFor(cat, name)));
+    content.append(grid);
+
+    header.addEventListener("click", ()=>{
+      const open = header.classList.toggle("active");
+      header.setAttribute("aria-expanded", open ? "true" : "false");
+      content.style.display = open ? "block" : "none";
+    });
+
+    box.append(header, content);
+  });
+}
+
+/* =======================
+   Lists & Moves (+ fireworks)
+   ======================= */
+function renderLists(){
+  const map = {
+    active: $("#list-active .items"),
+    next: $("#list-next .items"),
+    backlog: $("#list-backlog .items"),
+    done: $("#list-done .items")
+  };
+  for(const [k,box] of Object.entries(map)){
+    box.innerHTML="";
+    [...STATE[k]].sort((a,b)=> a.localeCompare(b)).forEach(name=>{
+      const p = el("span",{class:"pill"}, name, el("button",{class:"x",onClick:()=>removeFrom(k,name),title:"Remove"},"✕"));
+      box.append(p);
+    });
+  }
+  updateCounts();
+}
+
+function move(name, dest){
+  const wasDone = STATE.done.has(name);
+  ["active","next","backlog","done"].forEach(k=> STATE[k].delete(name));
+  STATE[dest].add(name);
+  saveMain(); renderLists();
+  // Fireworks if newly completed
+  if(dest==="done" && !wasDone){ fireworks(); }
+}
+function removeFrom(listName, name){
+  STATE[listName].delete(name); saveMain(); renderLists();
+}
+function updateCounts(){
+  $("#count-active").textContent = `(${STATE.active.size})`;
+  $("#count-next").textContent = `(${STATE.next.size})`;
+  $("#count-backlog").textContent = `(${STATE.backlog.size})`;
+  $("#count-done").textContent = `(${STATE.done.size})`;
+}
+
+/* =======================
+   Stops → Replacements with highlight
+   ======================= */
+function renderStops(){
+  const box = $("#stopGrid");
+  box.innerHTML="";
+  Object.entries(STOPS).forEach(([bad, repls])=>{
+    const badBtn = el("button",{class:"btn danger",onClick:()=>{ badBtn.classList.toggle("selected"); move(bad,"done"); }}, bad);
+    box.append(badBtn);
+    repls.forEach(r=>{
+      const goodBtn = el("button",{class:"btn good",onClick:()=>{ goodBtn.classList.toggle("selected"); move(r,"next"); }}, r);
+      box.append(goodBtn);
+    });
+  });
+
+  $("#retireAllStops").onclick = ()=>{
+    [...box.querySelectorAll(".btn.danger")].forEach(b=> b.classList.add("selected"));
+    Object.keys(STOPS).forEach(bad=> STATE.done.add(bad));
+    saveMain(); renderLists(); fireworks();
+  };
+  $("#tryAllReplacements").onclick = ()=>{
+    [...box.querySelectorAll(".btn.good")].forEach(b=> b.classList.add("selected"));
+    Object.values(STOPS).flat().forEach(r=> STATE.next.add(r));
+    saveMain(); renderLists();
+  };
+}
+
+/* =======================
+   Custom Negative Habits
+   ======================= */
+function renderNegativeIdeas(){
+  const row = $("#nh-ideas");
+  row.innerHTML = "";
+  NEGATIVE_IDEAS.forEach(txt=>{
+    const b = el("button",{class:"tag",onClick:()=>{
+      $("#nh-name").value = txt;
+      $("#nh-stop").focus();
+    }}, txt);
+    row.append(b);
+  });
+}
+
+function readNHForm(){
+  return {
+    id: crypto.randomUUID(),
+    name: $("#nh-name").value.trim(),
+    stop: $("#nh-stop").value.trim(),
+    replace: $("#nh-replace").value.trim(),
+    d: Number($("#nh-d").value||0),
+    w: Number($("#nh-w").value||0),
+    m: Number($("#nh-m").value||0),
+    y: Number($("#nh-y").value||0),
+    notes: $("#nh-notes").value.trim(),
+    updatedAt: Date.now()
+  };
+}
+
+function renderNHList(){
+  const list = loadNH();
+  const box = $("#nh-list");
+  box.innerHTML = "";
+  list.forEach(item=>{
+    const card = el("div",{class:"nh-card"});
+    card.append(
+      el("div",{class:"nh-title"}, item.name || "Untitled"),
+      el("div",{}, el("span",{class:"fine"},"How to stop: "), document.createTextNode(item.stop||"—")),
+      el("div",{}, el("span",{class:"fine"},"Better habit: "), document.createTextNode(item.replace||"—")),
+
+      // progress rows
+      progressRow("Day", item.d, v=> updateNH(item.id,{d:v})),
+      progressRow("Week", item.w, v=> updateNH(item.id,{w:v})),
+      progressRow("Month", item.m, v=> updateNH(item.id,{m:v})),
+      progressRow("Year", item.y, v=> updateNH(item.id,{y:v})),
+
+      // notes
+      (()=>{
+        const wrap = el("div",{});
+        const lab = el("label",{class:"fine"},"Notes");
+        const ta = el("textarea",{rows:"3"}, item.notes||"");
+        ta.addEventListener("input", ()=> updateNH(item.id,{notes:ta.value}));
+        wrap.append(lab, ta);
+        return wrap;
+      })(),
+
+      // actions
+      (()=>{
+        const row = el("div",{class:"nh-actions"});
+        const toNext = el("button",{class:"btn good", onClick:()=>{ STATE.next.add(item.replace||item.name); saveMain(); renderLists(); }}, "→ Next Up");
+        const toDone = el("button",{class:"btn danger", onClick:()=>{ STATE.done.add(item.name); saveMain(); renderLists(); fireworks(); }}, "Mark Completed 🎆");
+        const del = el("button",{class:"btn", onClick:()=> deleteNH(item.id)}, "Delete");
+        row.append(toNext,toDone,del);
+        return row;
+      })()
+    );
+    box.append(card);
+  });
+}
+
+function progressRow(labelText, value, onChange){
+  const row = el("div",{class:"range-row"});
+  const lab = el("label",{class:"fine"}, labelText);
+  const num = el("span",{class:"fine"}, `${value||0}%`);
+  const rng = el("input",{type:"range", min:"0", max:"100", value:String(value||0)});
+  rng.addEventListener("input", ()=>{ num.textContent = `${rng.value}%`; onChange(Number(rng.value)); });
+  row.append(lab, num);
+  row.appendChild(rng);
+  return row;
+}
+
+function updateNH(id, patch){
+  const list = loadNH();
+  const idx = list.findIndex(x=> x.id===id);
+  if(idx===-1) return;
+  list[idx] = {...list[idx], ...patch, updatedAt: Date.now()};
+  saveNH(list);
+}
+
+function deleteNH(id){
+  const list = loadNH().filter(x=> x.id!==id);
+  saveNH(list);
+  renderNHList();
+}
+
+function saveNHFromForm(){
+  const data = readNHForm();
+  if(!data.name){ alert("Add a negative habit name."); return; }
+  const list = loadNH();
+  list.push(data);
+  saveNH(list);
+  (document.getElementById("nh-form")).reset();
+  renderNHList();
+}
+
+/* =======================
+   Export/Import/Reset/Notes
+   ======================= */
+function exportJSON(){
+  const payload = {
+    main: JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}"),
+    negatives: JSON.parse(localStorage.getItem(NH_KEY)||"[]")
+  };
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = el("a",{href:url, download:"growth-areas-data.json"});
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(file){
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const obj = JSON.parse(e.target.result);
+      if(obj.main){
+        ["active","next","backlog","done"].forEach(k=> STATE[k] = new Set((obj.main[k]||[])));
+        $("#notes").value = obj.main.notes || "";
+        saveMain(); renderLists();
+      }
+      if(obj.negatives){
+        localStorage.setItem(NH_KEY, JSON.stringify(obj.negatives));
+        renderNHList();
+      }
+    }catch(err){ alert("Invalid file."); }
+  };
+  reader.readAsText(file);
+}
+
+function wipe(){
+  if(confirm("Reset lists (keeps catalog)?")){
+    ["active","next","backlog","done"].forEach(k=> STATE[k].clear());
+    saveMain(); renderLists();
+  }
+}
+
+/* =======================
+   Theme Picker (per-page)
+   ======================= */
+function initThemePicker(){
+  const picker = $("#bgPicker");
+  const saved = localStorage.getItem(THEME_KEY);
+  if(saved){ document.body.style.backgroundColor = saved; picker.value = saved; }
+  picker.addEventListener("input", (e)=>{
+    const color = e.target.value;
+    document.body.style.backgroundColor = color;
+    localStorage.setItem(THEME_KEY, color);
+  });
+}
+
+/* =======================
+   Fireworks (canvas)
+   ======================= */
+function fireworks(){
+  const c = document.getElementById("fx");
+  const ctx = c.getContext("2d");
+  const DPR = window.devicePixelRatio || 1;
+  c.style.display = "block";
+  c.width = innerWidth * DPR;
+  c.height = innerHeight * DPR;
+  ctx.scale(DPR, DPR);
+
+  const particles = [];
+  const gravity = 0.05;
+  const colors = ["#ff5252","#ffd452","#7cfc89","#8ab6ff","#f48fb1","#fff176","#b39ddb"];
+
+  function spawn(x,y){
+    for(let i=0;i<90;i++){
+      const angle = Math.random()*Math.PI*2;
+      const speed = Math.random()*5+2;
+      particles.push({
+        x,y, vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed,
+        life: 60 + Math.random()*30,
+        color: colors[(Math.random()*colors.length)|0]
+      });
+    }
+  }
+  // multiple bursts
+  for(let k=0;k<4;k++){
+    spawn(innerWidth*Math.random()*0.8+innerWidth*0.1, innerHeight*0.3 + Math.random()*innerHeight*0.2);
+  }
+
+  let frame = 0;
+  function tick(){
+    frame++;
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    particles.forEach(p=>{
+      p.vy += gravity;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= 1;
+      ctx.globalAlpha = Math.max(p.life/90, 0);
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI*2); ctx.fill();
+    });
+    // remove dead
+    for(let i=particles.length-1;i>=0;i--) if(particles[i].life<=0) particles.splice(i,1);
+    if(frame<180 && particles.length) requestAnimationFrame(tick);
+    else { c.style.display="none"; ctx.clearRect(0,0,innerWidth,innerHeight); }
+  }
+  tick();
+}
+
+/* =======================
+   Init
+   ======================= */
+function init(){
+  loadMain();
+
+  // SMART categories
+  $("#gCategory").innerHTML = Object.keys(CATALOG).map(c=>`<option>${c}</option>`).join("");
+
+  // UI renders
+  renderTabs();
+  renderAccordions();
+  renderStops();
+  renderNegativeIdeas();
+  renderNHList();
+  renderLists();
+
+  // Restore notes
+  $("#notes").value = STATE.notes || "";
+
+  // Wire controls
+  $("#search").addEventListener("input", e=>{ STATE.search=e.target.value; renderAccordions(); });
+  $("#exportBtn").addEventListener("click", exportJSON);
+  $("#importFile").addEventListener("change", e=> e.target.files[0] && importJSON(e.target.files[0]));
+  $("#wipe").addEventListener("click", wipe);
+  $("#buildSmart").addEventListener("click", ()=>move(buildSMARTText(), "active"));
+  $("#ideaToBacklog").addEventListener("click", ()=>move(buildSMARTText(), "backlog"));
+  $("#notes").addEventListener("input", saveMain);
+  $("#nh-save").addEventListener("click", saveNHFromForm);
+
+  // Keyboard: "/" focuses search
+  window.addEventListener("keydown", (e)=>{
+    if(e.key==="/" && document.activeElement.tagName!=="INPUT" && document.activeElement.tagName!=="TEXTAREA"){
+      e.preventDefault(); $("#search").focus();
+    }
+  });
+
+  initThemePicker();
+}
+
+function buildSMARTText(){
+  const t = $("#gTitle").value.trim();
+  const c = $("#gCategory").value;
+  const w = $("#gWhy").value.trim();
+  const m = $("#gMeasure").value.trim();
+  const a = $("#gActions").value.trim();
+  const d = $("#gTime").value.trim();
+  if(!t){ alert("Add a goal title."); return "Untitled goal"; }
+  (CATALOG[c]||[]).slice(0,2).forEach(s=> STATE.next.add(s)); // seed related habits
+  saveMain(); renderLists();
+  return `${t} — [${c}]\nWHY: ${w||"—"}\nMEASURE: ${m||"—"}\nACTIONS: ${a||"—"}\nTIMEFRAME: ${d||"—"}`;
+}
+
+document.addEventListener("DOMContentLoaded", init);
+</script>
+<script src="lifecompass.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</body>
+</html>

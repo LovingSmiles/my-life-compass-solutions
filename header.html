@@ -1,0 +1,43 @@
+<!-- header.html -->
+<header class="site-header">
+    <div class="wrap">
+      <!-- Clickable blue brand that returns home -->
+      <a class="brand" href="index.html" target="_top">My Life Compass Solutions</a>
+  
+      <link rel="stylesheet" href="lcp-nav.css">
+<script src="lcp-nav.js" defer></script>
+    </div>
+  </header>
+  
+  <script>
+  /* Active link highlighting (works standalone or iframed) */
+  (function(){
+    try{
+      const params = new URLSearchParams(location.search);
+      const qsActive = params.get('active');
+      const here =
+        qsActive ||
+        (window.top && window.top.location
+          ? window.top.location.pathname.split('/').pop()
+          : location.pathname.split('/').pop()) ||
+        'index.html';
+  
+      document.querySelectorAll('.site-header nav a[data-path]').forEach(a=>{
+        a.classList.toggle('active', a.getAttribute('data-path') === here);
+      });
+    }catch(e){}
+  
+    // Logout: clears storage and redirects
+    document.getElementById('logoutBtn')?.addEventListener('click', (e)=>{
+      e.preventDefault();
+      if(!confirm('Are you sure you want to log out?')) return;
+      try{
+        localStorage.clear(); sessionStorage.clear();
+        if (window.top) window.top.location.href = 'auth.html';
+        else location.href = 'auth.html';
+      }catch{ location.href = 'auth.html'; }
+    });
+  })();
+  </script>
+  <script src="lifecompass.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">

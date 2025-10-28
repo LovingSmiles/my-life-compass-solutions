@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="lcp-nav.css">
+<script src="lcp-nav.js" defer></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>My Life Compass Solutions — Financial</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="mood-switcher.js" defer></script>
+  <style>
+    /* small page-specific polish */
+    .top-tabs {
+      position: sticky; top: calc(var(--header-h) + 4px); z-index: 40;
+      background: color-mix(in srgb, var(--panel) 90%, transparent);
+      backdrop-filter: saturate(140%) blur(6px);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px;
+      box-shadow: var(--shadow-1);
+      margin: 12px auto 16px;
+      display:flex; flex-wrap:wrap; gap:6px; justify-content:center;
+      width: min(100%, 1100px);
+    }
+    .top-tabs a{
+      display:inline-flex; align-items:center; gap:.45rem;
+      padding:.5rem .9rem; border-radius:999px; border:1px solid var(--line);
+      background: color-mix(in srgb, var(--panel) 94%, var(--bg) 6%);
+      color:var(--text); text-decoration:none; font-weight:600;
+    }
+    .top-tabs a.active{ background: var(--accent); color:#fff; border-color: color-mix(in srgb, var(--accent), #000 20%) }
+
+    .mono{font-variant-numeric:tabular-nums; font-family:ui-monospace,Menlo,Consolas,monospace}
+    .kpi{display:grid;gap:12px;grid-template-columns:repeat(2,1fr)}
+    @media(min-width:1100px){.kpi{grid-template-columns:repeat(4,1fr)}}
+    .kpi .card{padding:14px;text-align:center}
+
+    .grid3{display:grid;gap:12px;grid-template-columns:1fr}
+    @media(min-width:1100px){.grid3{grid-template-columns:1.2fr 1fr 1fr}}
+
+    .budget-row{display:grid;gap:10px;grid-template-columns:1.2fr 120px 1fr 110px}
+    @media(max-width:900px){.budget-row{grid-template-columns:1fr}}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .table-compact th,.table-compact td{padding:.55rem .7rem}
+    .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:.15rem .5rem;color:var(--muted);font-size:.85rem}
+
+    .two{display:grid;gap:12px;grid-template-columns:1fr}
+    @media(min-width:900px){.two{grid-template-columns:1fr 1fr}}
+    .three{display:grid;gap:12px;grid-template-columns:1fr}
+    @media(min-width:1200px){.three{grid-template-columns:1fr 1fr 1fr}}
+
+    .scroll-x{overflow:auto}
+    .due-soon{ background: color-mix(in srgb, var(--accent-3) 18%, transparent); border-color: color-mix(in srgb, var(--accent-3) 40%, var(--line)); }
+    .overdue{ background: color-mix(in srgb, var(--accent-4) 18%, transparent); border-color: color-mix(in srgb, var(--accent-4) 40%, var(--line)); color:#7a0a0a; }
+  </style>
+</head>
+<body>
+
+  <!-- Shared header (auto-included by include.js) -->
+  <div id="site-header" data-include="header.html"></div>
+
+
+  <!-- Sticky section buttons -->
+  <nav class="top-tabs wrap" aria-label="Financial sections">
+    <a href="#sec-overview" class="tt">Overview</a>
+    <a href="#sec-planner" class="tt">Planner</a>
+    <a href="#sec-budget" class="tt">Budget</a>
+    <a href="#sec-debts" class="tt">Debts</a>
+    <a href="#sec-funds" class="tt">Kids & Mission</a>
+    <a href="#sec-subs" class="tt">Subscriptions</a>
+    <a href="#sec-networth" class="tt">Net Worth</a>
+    <a href="#sec-bills" class="tt">Bills</a>
+    <a href="#sec-export" class="tt">Exports</a>
+  </nav>
+
+  <main class="wrap">
+    <!-- OVERVIEW / KPIs -->
+    <section id="sec-overview" class="card">
+      <h1>💵 Financial Overview</h1>
+      <p class="muted">Quick snapshot of cashflow, savings momentum, and safety cushion.</p>
+      <section class="kpi">
+        <div class="card"><div class="muted">Monthly Net (after budget)</div><div id="k_month" class="mono" style="font-weight:800;font-size:1.3rem">$0.00</div></div>
+        <div class="card"><div class="muted">Year-1 Savings</div><div id="k_year" class="mono" style="font-weight:800;font-size:1.3rem">$0.00</div></div>
+        <div class="card"><div class="muted"><span id="k_span">5-Year</span> Savings (with raises)</div><div id="k_yrs" class="mono" style="font-weight:800;font-size:1.3rem">$0.00</div></div>
+        <div class="card"><div class="muted">Emergency Fund Target</div><div id="k_emerg" class="mono" style="font-weight:800;font-size:1.3rem">$0.00</div></div>
+      </section>
+    </section>
+
+    <!-- PLANNER -->
+    <section id="sec-planner" class="card">
+      <h2>📈 Planner (1–50 Years)</h2>
+      <p class="muted">Set income and assumptions. We’ll project savings with annual raises.</p>
+      <div class="grid3">
+        <div class="card">
+          <h3>Income & Assumptions</h3>
+          <div class="form-grid cols-2">
+            <label>Monthly Take-Home Income
+              <input id="fp_income" type="number" step="0.01" placeholder="e.g., 4200">
+            </label>
+            <label>Other Monthly Income
+              <input id="fp_other" type="number" step="0.01" value="0">
+            </label>
+            <label>Savings Rate (% of income)
+              <input id="fp_save_rate" type="number" step="1" min="0" max="100" value="10">
+            </label>
+            <label>Annual Raise (%, compounding)
+              <input id="fp_raise" type="number" step="0.1" min="0" value="3">
+            </label>
+            <label>Emergency Fund Target (months)
+              <input id="fp_emerg_months" type="number" step="1" min="0" value="6">
+            </label>
+            <label>Projection Horizon (years, 1–50)
+              <input id="fp_horizon" type="number" min="1" max="50" value="5">
+            </label>
+          </div>
+          <button id="fp_save" class="btn btn-success mt-2">Save Planner</button>
+        </div>
+
+        <div class="card">
+          <h3>Quick Split (50/30/20)</h3>
+          <p class="muted">Guideline based on total monthly income.</p>
+          <div class="form-grid">
+            <label>Total Monthly Income <input id="qs_inc" type="number" step="0.01" placeholder="e.g., 4200"></label>
+            <div><span class="badge">Needs</span> <span id="qs_needs" class="mono">$0.00</span></div>
+            <div><span class="badge">Wants</span> <span id="qs_wants" class="mono">$0.00</span></div>
+            <div><span class="badge">Savings/Debt</span> <span id="qs_save" class="mono">$0.00</span></div>
+          </div>
+          <button id="qs_calc" class="btn mt-2">Calculate</button>
+        </div>
+
+        <div class="card">
+          <h3>Paycheck Planner</h3>
+          <div class="form-grid cols-2">
+            <label>Paychecks / Month <input id="pp_count" type="number" min="1" max="5" value="2"></label>
+            <label>Rent / Mortgage <input id="pp_rent" type="number" step="0.01"></label>
+            <label>Utilities <input id="pp_util" type="number" step="0.01"></label>
+            <label>Groceries <input id="pp_groc" type="number" step="0.01"></label>
+            <label>Transport <input id="pp_trans" type="number" step="0.01"></label>
+            <label>Savings (goal) <input id="pp_sav" type="number" step="0.01"></label>
+          </div>
+          <button id="pp_make" class="btn mt-2">Split Across Paychecks</button>
+          <div id="pp_out" class="mt-2"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BUDGET -->
+    <section id="sec-budget" class="card">
+      <h2>🧾 Budget (Monthly)</h2>
+      <div class="card">
+        <h3>Categories</h3>
+        <div class="form-grid">
+          <div class="budget-row">
+            <input id="b_cat" placeholder="e.g., Housing">
+            <input id="b_amt" type="number" step="0.01" placeholder="Amount">
+            <select id="b_type">
+              <option value="Need">Need</option>
+              <option value="Want">Want</option>
+              <option value="Debt">Debt</option>
+              <option value="Invest">Invest</option>
+              <option value="Give">Give</option>
+              <option value="Other">Other</option>
+            </select>
+            <button id="b_add" class="btn btn-primary">Add/Update</button>
+          </div>
+        </div>
+        <div id="b_list" class="stack-md mt-2"></div>
+        <div class="stack-sm">
+          <button id="b_clear" class="btn btn-danger">Clear Budget (local)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- DEBTS -->
+    <section id="sec-debts" class="card">
+      <h2>🧮 Debts (Snowball / Avalanche + Scenarios)</h2>
+      <div class="two">
+        <div class="card">
+          <h3>Add / Update Debt</h3>
+          <div class="form-grid cols-2">
+            <label>Type
+              <select id="d_type">
+                <option>Credit Card</option><option>Student Loan</option><option>Personal Loan</option>
+                <option>Car Loan</option><option>Home Loan</option><option>401k Loan</option><option>Other</option>
+              </select>
+            </label>
+            <label>Name <input id="d_name" placeholder="e.g., Chase Sapphire, FedLoan A"></label>
+            <label>Balance ($) <input id="d_balance" type="number" step="0.01"></label>
+            <label>APR (%) <input id="d_apr" type="number" step="0.01"></label>
+            <label>Min Payment ($/mo) <input id="d_min" type="number" step="0.01"></label>
+            <label>Extra Payment ($/mo, optional) <input id="d_extra" type="number" step="0.01" value="0"></label>
+            <label class="cc-only">Card Limit ($) <input id="d_limit" type="number" step="0.01" placeholder="for credit cards"></label>
+            <label>Notes <input id="d_note" placeholder="optional"></label>
+          </div>
+          <button id="d_add" class="btn btn-primary mt-2">Add / Update</button>
+          <button id="d_clear" class="btn btn-danger mt-2">Clear All Debts (local)</button>
+        </div>
+
+        <div class="card">
+          <h3>Payoff Strategy</h3>
+          <div class="form-grid cols-2">
+            <label>Strategy
+              <select id="d_strategy">
+                <option value="snowball">Snowball (lowest balance first)</option>
+                <option value="avalanche">Avalanche (highest APR first)</option>
+              </select>
+            </label>
+            <label>Extra to Snowball ($/mo) <input id="d_snow_extra" type="number" step="0.01" value="0"></label>
+            <label>Scenario: Fixed Payment to One Debt ($/mo) <input id="d_whatif_pay" type="number" step="0.01" value="0"></label>
+            <label>Scenario Debt (name) <input id="d_whatif_name" placeholder="exact name"></label>
+          </div>
+          <button id="d_run" class="btn btn-success mt-2">Run Simulation</button>
+          <div id="d_results" class="stack-md mt-2"></div>
+        </div>
+      </div>
+      <div id="d_list" class="stack-md mt-2"></div>
+    </section>
+
+    <!-- FUNDS -->
+    <section id="sec-funds" class="card">
+      <h2>👨‍👩‍👧‍👦 Kids & Mission Funds</h2>
+      <div class="form-grid cols-2">
+        <label>Fund Name <input id="f_name" placeholder="e.g., Emma College, Mission Fund"></label>
+        <label>Monthly Contribution ($) <input id="f_monthly" type="number" step="0.01" value="50"></label>
+        <label>Annual Growth (%) <input id="f_growth" type="number" step="0.1" value="6"></label>
+        <label>Notes <input id="f_notes" placeholder="optional"></label>
+      </div>
+      <button id="f_add" class="btn btn-primary mt-2">Add / Update Fund</button>
+      <div class="stack-sm mt-2">
+        <label>Projection Horizon (years, 1–50) <input id="f_horizon" type="number" min="1" max="50" value="18"></label>
+        <button id="f_calc" class="btn btn-success">Recalculate Projections</button>
+        <button id="f_clear" class="btn btn-danger">Clear All Funds (local)</button>
+      </div>
+      <div id="f_list" class="stack-md mt-2"></div>
+    </section>
+
+    <!-- SUBSCRIPTIONS -->
+    <section id="sec-subs" class="card">
+      <h2>🧾 Subscriptions</h2>
+      <p class="muted">Track recurring services to see monthly “burn”.</p>
+      <div class="form-grid cols-2">
+        <label>Name <input id="s_name" placeholder="e.g., Netflix"></label>
+        <label>Monthly Cost ($) <input id="s_cost" type="number" step="0.01"></label>
+        <label>Cycle Day (1–31) <input id="s_day" type="number" min="1" max="31"></label>
+        <label>Notes <input id="s_notes" placeholder="optional"></label>
+      </div>
+      <div class="actions mt-1">
+        <button id="s_add" class="btn btn-primary">Add / Update</button>
+        <button id="s_clear" class="btn btn-danger">Clear All</button>
+        <span class="badge">Total Monthly: <span id="s_total" class="mono">$0.00</span></span>
+      </div>
+      <div id="s_list" class="stack-md mt-2"></div>
+    </section>
+
+    <!-- NET WORTH -->
+    <section id="sec-networth" class="card">
+      <h2>📊 Net Worth</h2>
+      <div class="form-grid cols-2">
+        <label>Asset Name <input id="nw_asset_name" placeholder="Cash, Brokerage, Car"></label>
+        <label>Value ($) <input id="nw_asset_val" type="number" step="0.01"></label>
+        <label>Liability Name <input id="nw_liab_name" placeholder="Mortgage balance, Auto loan"></label>
+        <label>Value ($) <input id="nw_liab_val" type="number" step="0.01"></label>
+      </div>
+      <div class="actions mt-1">
+        <button id="nw_add_asset" class="btn btn-primary">Add Asset</button>
+        <button id="nw_add_liab" class="btn btn-primary">Add Liability</button>
+        <button id="nw_snapshot" class="btn btn-ghost">Save Monthly Snapshot</button>
+        <button id="nw_clear" class="btn btn-danger">Clear All</button>
+      </div>
+      <div id="nw_totals" class="mt-2"></div>
+      <div class="grid2 mt-2">
+        <div class="card">
+          <h3>Assets</h3>
+          <div id="nw_assets"></div>
+        </div>
+        <div class="card">
+          <h3>Liabilities</h3>
+          <div id="nw_liabs"></div>
+        </div>
+      </div>
+      <div class="card mt-2">
+        <h3>Snapshots</h3>
+        <div id="nw_snaps" class="stack-md"></div>
+      </div>
+    </section>
+
+    <!-- BILLS -->
+    <section id="sec-bills" class="card">
+      <h2>🗓️ Bills & Reminders</h2>
+      <div class="form-grid cols-2">
+        <label>Bill Name <input id="bl_name" placeholder="Electric, Phone, Rent"></label>
+        <label>Amount ($) <input id="bl_amt" type="number" step="0.01"></label>
+        <label>Due Date <input id="bl_due" type="date"></label>
+        <label>Notes <input id="bl_notes" placeholder="optional"></label>
+      </div>
+      <div class="actions mt-1">
+        <button id="bl_add" class="btn btn-primary">Add / Update</button>
+        <button id="bl_clear" class="btn btn-danger">Clear Bills</button>
+        <span id="bl_hint" class="badge">—</span>
+      </div>
+      <div id="bl_list" class="stack-md mt-2"></div>
+    </section>
+
+    <!-- EXPORTS -->
+    <section id="sec-export" class="card">
+      <h2>📤 Exports</h2>
+      <div class="stack-sm">
+        <button id="ex_html" class="btn btn-primary">Export Financial Summary (HTML)</button>
+        <button id="ex_csv" class="btn btn-ghost">Export Transactions (CSV)</button>
+        <button id="ex_json" class="btn btn-ghost">Export Everything (JSON)</button>
+        <button id="all_clear" class="btn btn-danger">Clear ALL Financial Data (local)</button>
+      </div>
+      <div class="muted mt-1">Tip: use Exports to share snapshots with a coach or save a backup.</div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Stewardship builds freedom. • © 2025 LovingSmiles</p>
+  </footer>
+
+  <!-- Login Guard -->
+  <script>
+  (function () {
+    try {
+      const SESS_K='lc_session_v1', MSG_K='lc_redirect_msg';
+      if (location.pathname.endsWith('auth.html')) return;
+      if (location.search.includes('noredirect')) return;
+      let raw = sessionStorage.getItem(SESS_K) || localStorage.getItem(SESS_K);
+      if (!raw){ localStorage.setItem(MSG_K,'Your session expired or you need to log in first.'); location.href='auth.html'; return; }
+      let sess=null; try{ sess=JSON.parse(raw) }catch{}
+      if(!sess || !sess.token){ localStorage.setItem(MSG_K,'Your session expired or you need to log in first.'); location.href='auth.html'; return; }
+      const ONE_DAY=86400000;
+      if(!sess.ts || Date.now()-sess.ts>ONE_DAY){
+        localStorage.removeItem(SESS_K); sessionStorage.removeItem(SESS_K);
+        localStorage.setItem(MSG_K,'Your session has expired after 24 hours. Please sign in again.');
+        location.href='auth.html';
+      }
+    } catch(e){ /* fail open */ }
+  })();
+  </script>
+
+  <!-- Page Logic -->
+  <script>
+  /* ===== Helpers ===== */
+  const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+  const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+  const read=(k,fb)=>{ try{ return JSON.parse(localStorage.getItem(k)) ?? fb } catch { return fb } };
+  const uid=()=>crypto?.randomUUID?.()||Math.random().toString(36).slice(2);
+  const money=n=>(isNaN(+n)?0:+n);
+  const fmt=n=>'$'+(Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  function esc(s){return String(s??'').replace(/</g,'&lt;')}
+  function dlFile(name, text, type='text/plain'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),800);}
+  const htmlDoc=(title, body)=>`<!doctype html><meta charset="utf-8"><title>${title}</title><style>
+    body{font:16px/1.6 system-ui;margin:40px;max-width:1000px}
+    .card{border:1px solid #ddd;border-radius:12px;padding:16px;margin:10px 0}
+    table{border-collapse:collapse;width:100%} th,td{border:1px solid #ddd;padding:8px;text-align:left} th{background:#f6f7fb}
+    .right{text-align:right} .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+  </style><h1>${title}</h1>${body}`;
+
+  /* ===== Shared Calendar DB helpers (correct place) ===== */
+  function addMonthsISO(iso, months){
+    const [y,m,d]=iso.split('-').map(Number);
+    const dt=new Date(y, m-1+months, d);
+    return dt.toISOString().slice(0,10);
+  }
+  function firstOfNextMonthISO(fromDate=new Date()){
+    const y=fromDate.getFullYear(), m=fromDate.getMonth();
+    return new Date(y, m+1, 1).toISOString().slice(0,10);
+  }
+  function dayKey(y,m,d){ return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+
+  function calendarLoadDB(){
+    try{ return JSON.parse(localStorage.getItem('lc_calendar_v1')) || {months:{},days:{}} }catch{ return {months:{},days:{}} }
+  }
+  function calendarSaveDB(db){
+    localStorage.setItem('lc_calendar_v1', JSON.stringify(db));
+  }
+  function addNoteToCalendarDate(iso, text, color='blue', reminderTime='09:00'){
+    const db = calendarLoadDB();
+    if(!db.days[iso]) db.days[iso] = {notes:'', tags:[], color:'', photos:[], todos:[], reminders:[]};
+    db.days[iso].notes = (db.days[iso].notes ? (db.days[iso].notes + '\n') : '') + text;
+    if(color) db.days[iso].color = color;
+    db.days[iso].reminders.push({id: (crypto?.randomUUID?.()||Math.random().toString(36).slice(2)), time:reminderTime, msg:text, repeat:'none'});
+    calendarSaveDB(db);
+  }
+  function addDebtPayoffsToCalendar(sim, startAtNextMonth=true){
+    if(!sim || !sim.schedules) return;
+    const startISO = startAtNextMonth ? firstOfNextMonthISO(new Date()) : new Date().toISOString().slice(0,10);
+    const sYear = +startISO.slice(0,4), sMonth = +startISO.slice(5,7);
+
+    Object.entries(sim.schedules).forEach(([name, sched])=>{
+      if(!sched.length) return;
+      const payoffMonthIndex = sched[sched.length-1].m - 1; // zero-based offset
+      const payoffDate = new Date(sYear, sMonth-1 + payoffMonthIndex, 1);
+      const iso = payoffDate.toISOString().slice(0,10);
+      addNoteToCalendarDate(iso, `🎉 Payoff: ${name}`, 'green', '09:00');
+
+      const db = calendarLoadDB();
+      db.days[iso].tags = Array.from(new Set([...(db.days[iso].tags||[]), 'payoff','finance','win']));
+      calendarSaveDB(db);
+    });
+  }
+  function addMonthlyPaymentRemindersToCalendar(sim, dom=1, startAtNextMonth=true){
+    if(!sim || !sim.schedules) return;
+    const startISO = startAtNextMonth ? firstOfNextMonthISO(new Date()) : new Date().toISOString().slice(0,10);
+    const sYear = +startISO.slice(0,4), sMonth = +startISO.slice(5,7);
+
+    Object.entries(sim.schedules).forEach(([name, sched])=>{
+      const months = sched.length;
+      for(let i=0;i<months;i++){
+        const when = new Date(sYear, sMonth-1 + i, dom);
+        const iso = when.toISOString().slice(0,10);
+        addNoteToCalendarDate(iso, `💳 ${name} — Payment due`, 'blue', '08:00');
+      }
+    });
+  }
+
+  /* ===== Global State ===== */
+  const K='lc_financial_pro_v4';
+  let state=read(K,{
+    planner:{income:0,other:0,saveRate:10,raise:3,emergMonths:6,horizon:5},
+    budget:{},                 // cat -> {amount,type}
+    tx:[],                     // (kept for CSV button)
+    career:{role:'',goalRole:'',goalSalary:'',timeline:'',skills:''}, // placeholder
+    debts:[],                  // {id,type,name,balance,apr,min,extra,limit,note}
+    funds:[],                  // {id,name,monthly,growth,notes}
+    subs:[],                   // {id,name,cost,day,notes}
+    net:{ assets:[], liabs:[], snaps:[] }, // assets/liabs arrays + snapshots
+    bills:[]                   // {id,name,amt,due,notes}
+  });
+
+  /* ===== Sticky top-tab highlighting ===== */
+  const tabs = $$('.top-tabs a');
+  function hiliteTabs(){
+    const y = scrollY + (innerHeight*0.2);
+    ['sec-overview','sec-planner','sec-budget','sec-debts','sec-funds','sec-subs','sec-networth','sec-bills','sec-export']
+      .forEach(id=>{
+        const el=document.getElementById(id);
+        if(!el) return;
+        const top=el.offsetTop, bottom=top+el.offsetHeight;
+        const on = y>=top && y<bottom;
+        const link = tabs.find(a=>a.getAttribute('href')==='#'+id);
+        if(link) link.classList.toggle('active', on);
+      });
+  }
+  addEventListener('scroll', hiliteTabs, {passive:true});
+  addEventListener('load', hiliteTabs);
+
+  /* ===== Planner / KPIs ===== */
+  function calcKPIs(){
+    const incMonthly=money(state.planner.income)+money(state.planner.other);
+    const budMonthly=Object.values(state.budget).reduce((s,b)=>s+money(b.amount),0);
+    const saveRate=Math.max(0,Math.min(100,money(state.planner.saveRate)))/100;
+    const raise=Math.max(0,money(state.planner.raise))/100;
+    const horizon=Math.max(1,Math.min(50,parseInt(state.planner.horizon||'5',10)));
+
+    const netMonthly=incMonthly - budMonthly;
+    const explicitMonthly=incMonthly*saveRate;
+    const year1=(explicitMonthly + Math.max(0,netMonthly))*12;
+
+    let proj=0, inc=incMonthly;
+    for(let y=1;y<=horizon;y++){
+      if(y>1) inc*=(1+raise);
+      proj += (inc*saveRate + Math.max(0,inc - budMonthly))*12;
+    }
+
+    // essentials = Needs + Debt; fallback to total budget if empty
+    const essentials = Object.values(state.budget).filter(b=>['Need','Debt'].includes(b.type)).reduce((s,b)=>s+money(b.amount),0) || budMonthly;
+    const emerg = essentials * Math.max(0, state.planner.emergMonths||0);
+
+    $('#k_month').textContent=fmt(netMonthly);
+    $('#k_year').textContent=fmt(year1);
+    $('#k_span').textContent=horizon+'-Year';
+    $('#k_yrs').textContent=fmt(proj);
+    $('#k_emerg').textContent=fmt(emerg);
+  }
+  function hydratePlanner(){
+    $('#fp_income').value=state.planner.income||'';
+    $('#fp_other').value=state.planner.other||'0';
+    $('#fp_save_rate').value=state.planner.saveRate||10;
+    $('#fp_raise').value=state.planner.raise||3;
+    $('#fp_emerg_months').value=state.planner.emergMonths||6;
+    $('#fp_horizon').value=state.planner.horizon||5;
+    calcKPIs();
+  }
+  $('#fp_save').onclick=()=>{
+    state.planner={
+      income:money($('#fp_income').value),
+      other:money($('#fp_other').value),
+      saveRate:money($('#fp_save_rate').value),
+      raise:money($('#fp_raise').value),
+      emergMonths:Math.max(0,parseInt($('#fp_emerg_months').value||'0',10)),
+      horizon:Math.max(1,Math.min(50,parseInt($('#fp_horizon').value||'5',10)))
+    };
+    save(K,state); calcKPIs();
+  };
+
+  // quick split
+  $('#qs_calc').onclick=()=>{
+    const inc=money($('#qs_inc').value);
+    $('#qs_needs').textContent=fmt(inc*0.5);
+    $('#qs_wants').textContent=fmt(inc*0.3);
+    $('#qs_save').textContent=fmt(inc*0.2);
+  };
+
+  // paycheck planner
+  $('#pp_make').onclick=()=>{
+    const n=Math.max(1,Math.min(5,parseInt($('#pp_count').value||'2',10)));
+    const bills = [
+      {name:'Rent/Mortgage', amt:money($('#pp_rent').value)},
+      {name:'Utilities', amt:money($('#pp_util').value)},
+      {name:'Groceries', amt:money($('#pp_groc').value)},
+      {name:'Transport', amt:money($('#pp_trans').value)},
+      {name:'Savings', amt:money($('#pp_sav').value)}
+    ].filter(x=>x.amt>0);
+    const buckets=Array.from({length:n},()=>({sum:0,items:[]}));
+    bills.sort((a,b)=>b.amt-a.amt).forEach(b=>{
+      // put into lightest bucket
+      let best=0; for(let i=1;i<n;i++) if(buckets[i].sum<buckets[best].sum) best=i;
+      buckets[best].sum+=b.amt; buckets[best].items.push(b);
+    });
+    const host=$('#pp_out'); host.innerHTML='';
+    buckets.forEach((bk,i)=>{
+      const d=document.createElement('div'); d.className='card';
+      d.innerHTML=`<strong>Paycheck ${i+1}</strong> — <span class="mono">${fmt(bk.sum)}</span><div class="muted">${bk.items.map(it=>`${esc(it.name)}: ${fmt(it.amt)}`).join(' • ')||'—'}</div>`;
+      host.appendChild(d);
+    });
+  };
+
+  /* ===== Budget ===== */
+  function renderBudget(){
+    const host=$('#b_list'); host.innerHTML='';
+    const entries=Object.entries(state.budget);
+    if(!entries.length){ host.innerHTML='<div class="muted">No budget categories yet.</div>'; return; }
+    entries.forEach(([cat,info])=>{
+      const row=document.createElement('div'); row.className='card';
+      row.innerHTML=`<div class="budget-row">
+        <div><strong>${esc(cat)}</strong> <span class="badge">${esc(info.type||'Other')}</span></div>
+        <div class="mono">${fmt(info.amount)}</div>
+        <div class="muted">Per Month</div>
+        <div class="actions">
+          <button class="btn btn-ghost" data-edit="${esc(cat)}">Edit</button>
+          <button class="btn btn-danger" data-del="${esc(cat)}">Delete</button>
+        </div>
+      </div>`;
+      host.appendChild(row);
+    });
+    host.addEventListener('click',ev=>{
+      const del=ev.target.getAttribute('data-del'); const ed=ev.target.getAttribute('data-edit');
+      if(del){ delete state.budget[del]; save(K,state); renderBudget(); calcKPIs(); }
+      if(ed){
+        const n=prompt('New monthly amount for '+ed, state.budget[ed].amount);
+        if(n!=null){ state.budget[ed].amount=money(n); save(K,state); renderBudget(); calcKPIs(); }
+      }
+    },{once:true});
+  }
+  $('#b_add').onclick=()=>{
+    const cat=$('#b_cat').value.trim(); const amt=money($('#b_amt').value); const type=$('#b_type').value;
+    if(!cat){alert('Enter category name'); return;}
+    state.budget[cat]={amount:amt,type}; save(K,state);
+    $('#b_cat').value=''; $('#b_amt').value='';
+    renderBudget(); calcKPIs();
+  };
+  $('#b_clear').onclick=()=>{ if(confirm('Clear all budget categories?')){ state.budget={}; save(K,state); renderBudget(); calcKPIs(); } };
+
+  /* ===== Debts ===== */
+  function showLimitField(){ $('.cc-only').style.display = $('#d_type').value==='Credit Card' ? 'block' : 'none'; }
+  $('#d_type').addEventListener('change', showLimitField); showLimitField();
+
+  function renderDebts(){
+    const host=$('#d_list'); host.innerHTML='';
+    if(!state.debts.length){ host.innerHTML='<div class="muted">No debts yet.</div>'; return; }
+    state.debts.slice().reverse().forEach(d=>{
+      const util = (d.type==='Credit Card' && d.limit>0) ? (d.balance/d.limit*100) : null;
+      const div=document.createElement('div'); div.className='card';
+      div.innerHTML=`<h3>${esc(d.name||d.type)} <span class="pill">${esc(d.type)}</span>
+        <span class="badge">APR: ${(+d.apr||0).toFixed(2)}%</span>
+        <span class="badge">Min: ${fmt(d.min||0)}</span>
+        ${d.extra?`<span class="badge">Extra: ${fmt(d.extra)}</span>`:''}
+        ${util!=null?`<span class="badge">Util: ${util.toFixed(1)}%</span>`:''}
+        </h3>
+        <p class="muted">Balance: <b class="mono">${fmt(d.balance||0)}</b>${d.limit?` • Limit: <b class="mono">${fmt(d.limit)}</b>`:''}${d.note?` • ${esc(d.note)}`:''}</p>
+        <div class="actions">
+          <button class="btn btn-ghost" data-edit="${d.id}">Edit</button>
+          <button class="btn btn-danger" data-del="${d.id}">Delete</button>
+        </div>`;
+      host.appendChild(div);
+    });
+    host.addEventListener('click',ev=>{
+      const idDel=ev.target.getAttribute('data-del'); const idEd=ev.target.getAttribute('data-edit');
+      if(idDel){ state.debts=state.debts.filter(x=>x.id!==idDel); save(K,state); renderDebts(); }
+      if(idEd){
+        const d=state.debts.find(x=>x.id===idEd); if(!d) return;
+        const nb=prompt('New balance', d.balance); if(nb!=null) d.balance=money(nb);
+        const na=prompt('New APR (%)', d.apr); if(na!=null) d.apr=money(na);
+        const nm=prompt('New min payment', d.min); if(nm!=null) d.min=money(nm);
+        save(K,state); renderDebts();
+      }
+    },{once:true});
+  }
+
+  $('#d_add').onclick=()=>{
+    const d={
+      id: uid(),
+      type: $('#d_type').value,
+      name: ($('#d_name').value.trim() || $('#d_type').value),
+      balance: money($('#d_balance').value),
+      apr: money($('#d_apr').value),
+      min: money($('#d_min').value),
+      extra: money($('#d_extra').value),
+      limit: money($('#d_limit').value),
+      note: $('#d_note').value.trim()
+    };
+    if(!d.balance || isNaN(d.apr)){ alert('Balance and APR are required'); return; }
+    const idx = state.debts.findIndex(x=>x.name.toLowerCase()===d.name.toLowerCase());
+    if(idx>=0) state.debts[idx]=Object.assign(state.debts[idx], d);
+    else state.debts.push(d);
+    save(K,state);
+    ['d_name','d_balance','d_apr','d_min','d_extra','d_limit','d_note'].forEach(i=>$('#'+i).value='');
+    renderDebts();
+  };
+  $('#d_clear').onclick=()=>{ if(confirm('Clear ALL debts (local)?')){ state.debts=[]; save(K,state); renderDebts(); $('#d_results').innerHTML=''; } };
+
+  function monthlyRate(apr){ return (apr/100)/12; }
+  function simulatePayoff(debts, strategy='snowball', snowExtra=0, whatIfName='', whatIfExtra=0){
+    debts = debts.map(d=>({...d}));
+    if(whatIfName && whatIfExtra>0){
+      const t=debts.find(d=>d.name.toLowerCase()===whatIfName.toLowerCase());
+      if(t) t.extra = (t.extra||0) + whatIfExtra;
+    }
+    let orderFn = strategy==='avalanche' ? (a,b)=> b.apr - a.apr : (a,b)=> a.balance - b.balance;
+
+    let month=0, totalInterest=0, schedules={}, finished=false;
+    debts.forEach(d=>schedules[d.name]=[]);
+    while(!finished && month<6000){
+      month++;
+      const active = debts.filter(d=>d.balance>0).sort(orderFn);
+      if(!active.length){ finished=true; break; }
+      let snowball = snowExtra;
+      for(const d of active){
+        const r = monthlyRate(d.apr);
+        const interest = d.balance * r;
+        let pay = Math.max(0, (d.min||0) + (d.extra||0));
+        if(active[0]===d && snowball>0) { pay += snowball; }
+        if(pay <= interest+0.01){ pay = interest+0.01; }
+        const principal = Math.min(d.balance, pay - interest);
+        d.balance = +(d.balance - principal).toFixed(10);
+        totalInterest += interest;
+        schedules[d.name].push({m:month, interest:+interest.toFixed(2), principal:+principal.toFixed(2), balance:+d.balance.toFixed(2), payment:+pay.toFixed(2)});
+        if(d.balance<=0.005){
+          const over = pay - (interest + principal);
+          snowball += (d.min||0) + (d.extra||0) + (over>0?over:0);
+          d.balance = 0;
+        }
+      }
+      finished = debts.every(d=>d.balance<=0);
+    }
+    const months = month;
+    const years = Math.floor(months/12), remMonths = months%12;
+    return {months, years, remMonths, totalInterest, schedules};
+  }
+
+  $('#d_run').onclick=()=>{
+    if(!state.debts.length){ alert('Add debts first'); return; }
+    const strat=$('#d_strategy').value;
+    const snow=money($('#d_snow_extra').value);
+    const whatIf=money($('#d_whatif_pay').value);
+    const whatName=$('#d_whatif_name').value.trim();
+
+    const res = simulatePayoff(state.debts, strat, snow, whatName, whatIf);
+
+    /* 🔗 NEW: automatically push milestones & payment reminders to Calendar DB */
+    addDebtPayoffsToCalendar(res, true);                 // 🎉 payoff on 1st of payoff month
+    addMonthlyPaymentRemindersToCalendar(res, 1, true);  // 💳 payment due on the 1st each month
+
+    const days = Math.round(res.months * 30.44);
+    const wrap = document.createElement('div');
+    wrap.className='card';
+    wrap.innerHTML = `<h3>Results</h3>
+      <p class="muted">Time to debt-free: <b>${res.years} years ${res.remMonths} months</b> (~${days.toLocaleString()} days). Total interest: <b class="mono">${fmt(res.totalInterest)}</b></p>
+      <p class="muted">✅ Payoff milestones + monthly payment reminders have been added to your Calendar.</p>
+      <div class="stack-sm">
+        <button class="btn" id="d_push_cal">Push to Calendar again</button>
+        <button class="btn btn-primary" id="d_export_html">Export Amortization (HTML)</button>
+        <button class="btn btn-ghost" id="d_export_json">Export Amortization (JSON)</button>
+        <button class="btn btn-ghost" id="d_export_csv">Export Amortization (CSV)</button>
+      </div>`;
+    const host=$('#d_results'); host.innerHTML=''; host.appendChild(wrap);
+
+    /* Optional: re-push button (useful if you tweak inputs and want to republish) */
+    $('#d_push_cal').onclick=()=>{
+      addDebtPayoffsToCalendar(res, true);
+      addMonthlyPaymentRemindersToCalendar(res, 1, true);
+      alert('Calendar updated with payoff milestones + monthly reminders.');
+    };
+
+    $('#d_export_json').onclick=()=>dlFile('debt_amortization.json', JSON.stringify(res,null,2), 'application/json');
+    $('#d_export_csv').onclick=()=>{
+      const rows=[];
+      Object.entries(res.schedules).forEach(([name,sch])=>{
+        sch.forEach(r=>rows.push({debt:name,month:r.m,interest:r.interest,principal:r.principal,ending_balance:r.balance,payment:r.payment}));
+      });
+      const keys=['debt','month','interest','principal','ending_balance','payment'];
+      const escq=s=>`"${String(s??'').replace(/"/g,'""')}"`;
+      const csv=keys.map(escq).join(',')+'\n'+rows.map(r=>keys.map(k=>escq(r[k])).join(',')).join('\n');
+      dlFile('debt_amortization.csv', csv, 'text/csv');
+    };
+    $('#d_export_html').onclick=()=>{
+      const parts = Object.entries(res.schedules).map(([name,sch])=>{
+        return `<div class="card"><h3>${esc(name)}</h3>
+        <table style="border-collapse:collapse;width:100%">
+        <thead><tr><th>Month</th><th>Payment</th><th>Interest</th><th>Principal</th><th>Ending Balance</th></tr></thead>
+        <tbody>${sch.map(r=>`<tr><td>${r.m}</td><td class="right mono">${fmt(r.payment)}</td><td class="right mono">${fmt(r.interest)}</td><td class="right mono">${fmt(r.principal)}</td><td class="right mono">${fmt(r.balance)}</td></tr>`).join('')}</tbody></table></div>`;
+      }).join('');
+      const html = htmlDoc('Debt Amortization — Life Compass Pro',
+        `<p>Time to debt-free: ${res.years} years ${res.remMonths} months • Total interest: ${fmt(res.totalInterest)}</p>${parts}`);
+      dlFile('debt_amortization.html', html, 'text/html');
+    };
+  };
+
+  /* ===== Funds ===== */
+  function futureValueMonthly(pmt, yearlyRate, years){
+    const r = yearlyRate/100/12, n = years*12;
+    if(r===0) return pmt*n;
+    return pmt * ((Math.pow(1+r,n)-1)/r);
+  }
+  function renderFunds(){
+    const host=$('#f_list'); host.innerHTML='';
+    if(!state.funds.length){ host.innerHTML='<div class="muted">No funds yet.</div>'; return; }
+    const horizon = Math.max(1, Math.min(50, parseInt($('#f_horizon').value||'18',10)));
+    state.funds.slice().reverse().forEach(f=>{
+      const proj = [];
+      for(let y=1;y<=horizon;y++){ proj.push({year:y, value: futureValueMonthly(f.monthly, f.growth, y)}); }
+      const div=document.createElement('div'); div.className='card';
+      div.innerHTML=`<h3>${esc(f.name)} <span class="badge">Monthly: ${fmt(f.monthly)}</span> <span class="badge">Growth: ${(+f.growth||0).toFixed(1)}%</span></h3>
+        ${f.notes?`<p class="muted">${esc(f.notes)}</p>`:''}
+        <div class="scroll-x">
+          <table class="table table-compact"><thead><tr><th>Year</th><th class="right">Balance</th></tr></thead><tbody>
+          ${proj.map(p=>`<tr><td>${p.year}</td><td class="right mono">${fmt(p.value)}</td></tr>`).join('')}
+          </tbody></table>
+        </div>
+        <div class="actions mt-1">
+          <button class="btn btn-ghost" data-edit="${f.id}">Edit</button>
+          <button class="btn btn-danger" data-del="${f.id}">Delete</button>
+        </div>`;
+      host.appendChild(div);
+    });
+    host.addEventListener('click',ev=>{
+      const idDel=ev.target.getAttribute('data-del'); const idEd=ev.target.getAttribute('data-edit');
+      if(idDel){ state.funds=state.funds.filter(x=>x.id!==idDel); save(K,state); renderFunds(); }
+      if(idEd){
+        const f=state.funds.find(x=>x.id===idEd); if(!f)return;
+        const nm=prompt('New monthly $', f.monthly); if(nm!=null) f.monthly=money(nm);
+        const gr=prompt('New annual growth %', f.growth); if(gr!=null) f.growth=money(gr);
+        save(K,state); renderFunds();
+      }
+    },{once:true});
+  }
+  $('#f_add').onclick=()=>{
+    const f={ id: uid(), name: $('#f_name').value.trim() || 'Fund', monthly: money($('#f_monthly').value), growth: money($('#f_growth').value), notes: $('#f_notes').value.trim() };
+    const idx = state.funds.findIndex(x=>x.name.toLowerCase()===f.name.toLowerCase());
+    if(idx>=0) state.funds[idx]=Object.assign(state.funds[idx], f); else state.funds.push(f);
+    save(K,state); ['f_name','f_monthly','f_growth','f_notes'].forEach(i=>$('#'+i).value=''); renderFunds();
+  };
+  $('#f_calc').onclick=renderFunds;
+  $('#f_clear').onclick=()=>{ if(confirm('Clear all funds (local)?')){ state.funds=[]; save(K,state); renderFunds(); } };
+
+  /* ===== Subscriptions ===== */
+  function renderSubs(){
+    const host=$('#s_list'); host.innerHTML='';
+    const total = (state.subs||[]).reduce((s,x)=>s+money(x.cost),0);
+    $('#s_total').textContent=fmt(total);
+    if(!state.subs.length){ host.innerHTML='<div class="muted">No subscriptions yet.</div>'; return; }
+    state.subs.slice().sort((a,b)=> (a.day||0)-(b.day||0)).forEach(s=>{
+      const d=document.createElement('div'); d.className='card';
+      d.innerHTML=`<strong>${esc(s.name)}</strong> <span class="badge">${fmt(s.cost)}</span> <span class="badge">Day ${s.day||'?'}</span>
+        ${s.notes?`<div class="muted">${esc(s.notes)}</div>`:''}
+        <div class="actions mt-1">
+          <button class="btn btn-ghost" data-edit="${s.id}">Edit</button>
+          <button class="btn btn-danger" data-del="${s.id}">Delete</button>
+        </div>`;
+      host.appendChild(d);
+    });
+    host.addEventListener('click',ev=>{
+      const idDel=ev.target.getAttribute('data-del'); const idEd=ev.target.getAttribute('data-edit');
+      if(idDel){ state.subs=state.subs.filter(x=>x.id!==idDel); save(K,state); renderSubs(); }
+      if(idEd){
+        const s=state.subs.find(x=>x.id===idEd); if(!s) return;
+        const nm=prompt('Name', s.name); if(nm!=null) s.name=nm.trim();
+        const ct=prompt('Monthly cost', s.cost); if(ct!=null) s.cost=money(ct);
+        const dy=prompt('Cycle day (1–31)', s.day); if(dy!=null) s.day=Math.max(1,Math.min(31,parseInt(dy||'1',10)));
+        save(K,state); renderSubs();
+      }
+    },{once:true});
+  }
+  $('#s_add').onclick=()=>{
+    const s={ id:uid(), name:$('#s_name').value.trim(), cost:money($('#s_cost').value), day:Math.max(1,Math.min(31,parseInt($('#s_day').value||'1',10))), notes:$('#s_notes').value.trim() };
+    if(!s.name || !s.cost){ alert('Name and monthly cost required'); return; }
+    const i=state.subs.findIndex(x=>x.name.toLowerCase()===s.name.toLowerCase());
+    if(i>=0) state.subs[i]=Object.assign(state.subs[i], s); else state.subs.push(s);
+    save(K,state); ['s_name','s_cost','s_day','s_notes'].forEach(i=>$('#'+i).value=''); renderSubs();
+  };
+  $('#s_clear').onclick=()=>{ if(confirm('Clear all subscriptions?')){ state.subs=[]; save(K,state); renderSubs(); } };
+
+  /* ===== Net Worth ===== */
+  function renderNW(){
+    const A=state.net.assets||[], L=state.net.liabs||[];
+    const aSum=A.reduce((s,x)=>s+money(x.val),0), lSum=L.reduce((s,x)=>s+money(x.val),0);
+    const nw=aSum-lSum;
+    $('#nw_totals').innerHTML = `<div class="card"><span class="badge">Assets</span> <b class="mono">${fmt(aSum)}</b> • <span class="badge">Liabilities</span> <b class="mono">${fmt(lSum)}</b> • <span class="badge">Net Worth</span> <b class="mono">${fmt(nw)}</b></div>`;
+    const aHost=$('#nw_assets'), lHost=$('#nw_liabs'); aHost.innerHTML=''; lHost.innerHTML='';
+    if(!A.length) aHost.innerHTML='<div class="muted">No assets yet.</div>'; else {
+      A.forEach((x,i)=> {
+        const d=document.createElement('div'); d.className='card';
+        d.innerHTML=`${esc(x.name)} — <b class="mono">${fmt(x.val)}</b>
+          <div class="actions mt-1">
+            <button class="btn btn-ghost" data-ae="${i}">Edit</button>
+            <button class="btn btn-danger" data-ad="${i}">Delete</button>
+          </div>`;
+        aHost.appendChild(d);
+      });
+      aHost.addEventListener('click',ev=>{
+        const del=ev.target.getAttribute('data-ad'), ed=ev.target.getAttribute('data-ae');
+        if(del!=null){ A.splice(+del,1); save(K,state); renderNW(); }
+        if(ed!=null){
+          const it=A[+ed]; const nm=prompt('Name', it.name); if(nm!=null) it.name=nm.trim();
+          const vl=prompt('Value', it.val); if(vl!=null) it.val=money(vl); save(K,state); renderNW();
+        }
+      },{once:true});
+    }
+    if(!L.length) lHost.innerHTML='<div class="muted">No liabilities yet.</div>'; else {
+      L.forEach((x,i)=> {
+        const d=document.createElement('div'); d.className='card';
+        d.innerHTML=`${esc(x.name)} — <b class="mono">${fmt(x.val)}</b>
+          <div class="actions mt-1">
+            <button class="btn btn-ghost" data-le="${i}">Edit</button>
+            <button class="btn btn-danger" data-ld="${i}">Delete</button>
+          </div>`;
+        lHost.appendChild(d);
+      });
+      lHost.addEventListener('click',ev=>{
+        const del=ev.target.getAttribute('data-ld'), ed=ev.target.getAttribute('data-le');
+        if(del!=null){ L.splice(+del,1); save(K,state); renderNW(); }
+        if(ed!=null){
+          const it=L[+ed]; const nm=prompt('Name', it.name); if(nm!=null) it.name=nm.trim();
+          const vl=prompt('Value', it.val); if(vl!=null) it.val=money(vl); save(K,state); renderNW();
+        }
+      },{once:true});
+    }
+    const sHost=$('#nw_snaps'); sHost.innerHTML='';
+    if(!state.net.snaps?.length) sHost.innerHTML='<div class="muted">No snapshots yet.</div>'; else {
+      state.net.snaps.slice().reverse().forEach(s=>{
+        const d=document.createElement('div'); d.className='card';
+        d.innerHTML=`<strong>${s.date}</strong> — Net Worth: <b class="mono">${fmt(s.nw)}</b> <span class="badge">A: ${fmt(s.assets)}</span> <span class="badge">L: ${fmt(s.liabs)}</span>`;
+        sHost.appendChild(d);
+      });
+    }
+  }
+  $('#nw_add_asset').onclick=()=>{
+    const name=$('#nw_asset_name').value.trim(), val=money($('#nw_asset_val').value);
+    if(!name || !val){ alert('Asset name and value required'); return; }
+    state.net.assets.push({name, val}); save(K,state); ['nw_asset_name','nw_asset_val'].forEach(i=>$('#'+i).value=''); renderNW();
+  };
+  $('#nw_add_liab').onclick=()=>{
+    const name=$('#nw_liab_name').value.trim(), val=money($('#nw_liab_val').value);
+    if(!name || !val){ alert('Liability name and value required'); return; }
+    state.net.liabs.push({name, val}); save(K,state); ['nw_liab_name','nw_liab_val'].forEach(i=>$('#'+i).value=''); renderNW();
+  };
+  $('#nw_snapshot').onclick=()=>{
+    const A=state.net.assets||[], L=state.net.liabs||[];
+    const aSum=A.reduce((s,x)=>s+money(x.val),0), lSum=L.reduce((s,x)=>s+money(x.val),0);
+    const snap={date:new Date().toISOString().slice(0,10), assets:aSum, liabs:lSum, nw:aSum-lSum};
+    state.net.snaps = (state.net.snaps||[]); state.net.snaps.push(snap);
+    save(K,state); renderNW();
+  };
+  $('#nw_clear').onclick=()=>{ if(confirm('Clear all net-worth data?')){ state.net={assets:[],liabs:[],snaps:[]}; save(K,state); renderNW(); } };
+
+  /* ===== Bills ===== */
+  function daysUntil(dateISO){
+    const d=new Date(dateISO); const today=new Date(); d.setHours(0,0,0,0); today.setHours(0,0,0,0);
+    return Math.round((d - today)/86400000);
+  }
+  function renderBills(){
+    const host=$('#bl_list'); host.innerHTML='';
+    const list=(state.bills||[]).slice().sort((a,b)=> a.due.localeCompare(b.due));
+    if(!list.length){ host.innerHTML='<div class="muted">No bills yet.</div>'; $('#bl_hint').textContent='—'; return; }
+    const soon=list.filter(b=>daysUntil(b.due)<=7 && daysUntil(b.due)>=0).length;
+    const late=list.filter(b=>daysUntil(b.due)<0).length;
+    $('#bl_hint').textContent = `${soon} due soon • ${late} overdue`;
+    list.forEach(b=>{
+      const d=document.createElement('div'); d.className='card';
+      const dd=daysUntil(b.due);
+      const badgeClass = dd<0 ? 'badge overdue' : (dd<=7 ? 'badge due-soon' : 'badge');
+      d.innerHTML=`<strong>${esc(b.name)}</strong> <span class="${badgeClass}">${b.due}</span> <span class="badge">${fmt(b.amt)}</span>
+        ${b.notes?`<div class="muted">${esc(b.notes)}</div>`:''}
+        <div class="actions mt-1">
+          <button class="btn btn-ghost" data-edit="${b.id}">Edit</button>
+          <button class="btn btn-danger" data-del="${b.id}">Delete</button>
+        </div>`;
+      host.appendChild(d);
+    });
+    host.addEventListener('click',ev=>{
+      const idDel=ev.target.getAttribute('data-del'); const idEd=ev.target.getAttribute('data-edit');
+      if(idDel){ state.bills=state.bills.filter(x=>x.id!==idDel); save(K,state); renderBills(); }
+      if(idEd){
+        const b=state.bills.find(x=>x.id===idEd); if(!b) return;
+        const nm=prompt('Bill name', b.name); if(nm!=null) b.name=nm.trim();
+        const am=prompt('Amount', b.amt); if(am!=null) b.amt=money(am);
+        const du=prompt('Due (YYYY-MM-DD)', b.due); if(du!=null) b.due=du;
+        save(K,state); renderBills();
+      }
+    },{once:true});
+  }
+  $('#bl_add').onclick=()=>{
+    const b={id:uid(), name:$('#bl_name').value.trim(), amt:money($('#bl_amt').value), due:$('#bl_due').value, notes:$('#bl_notes').value.trim()};
+    if(!b.name || !b.due){ alert('Name and due date required'); return; }
+    const i=state.bills.findIndex(x=>x.name.toLowerCase()===b.name.toLowerCase());
+    if(i>=0) state.bills[i]=Object.assign(state.bills[i], b); else state.bills.push(b);
+    save(K,state); ['bl_name','bl_amt','bl_due','bl_notes'].forEach(i=>$('#'+i).value=''); renderBills();
+  };
+  $('#bl_clear').onclick=()=>{ if(confirm('Clear all bills?')){ state.bills=[]; save(K,state); renderBills(); } };
+
+  /* ===== Exports ===== */
+  $('#ex_json').onclick=()=>dlFile('financial_all.json', JSON.stringify(state,null,2), 'application/json');
+  $('#ex_csv').onclick=()=>{
+    const keys=['date','category','amount','note']; const escq=s=>`"${String(s??'').replace(/"/g,'""')}"`;
+    const csv=keys.map(escq).join(',')+'\n'+(state.tx||[]).map(t=>[t.date,t.cat,t.amt,t.note].map(escq).join(',')).join('\n');
+    dlFile('transactions.csv', csv, 'text/csv');
+  };
+  $('#ex_html').onclick=()=>{
+    const budRows = Object.entries(state.budget).map(([c,i])=>`<tr><td>${esc(c)}</td><td>${esc(i.type||'')}</td><td class="right mono">${fmt(i.amount)}</td></tr>`).join('') || `<tr><td colspan="3">No budget categories</td></tr>`;
+    const debtRows = (state.debts||[]).map(d=>`<tr><td>${esc(d.name||d.type)}</td><td>${esc(d.type)}</td><td class="right mono">${fmt(d.balance)}</td><td>${(+d.apr||0).toFixed(2)}%</td><td class="right mono">${fmt(d.min||0)}</td><td class="right mono">${d.limit?fmt(d.limit):'—'}</td></tr>`).join('') || `<tr><td colspan="6">No debts</td></tr>`;
+    const fundRows = (state.funds||[]).map(f=>`<tr><td>${esc(f.name)}</td><td class="right mono">${fmt(f.monthly)}</td><td>${(+f.growth||0).toFixed(1)}%</td><td>${esc(f.notes||'')}</td></tr>`).join('') || `<tr><td colspan="4">No funds</td></tr>`;
+    const subsRows = (state.subs||[]).map(s=>`<tr><td>${esc(s.name)}</td><td class="right mono">${fmt(s.cost)}</td><td>Day ${s.day||'?'}</td><td>${esc(s.notes||'')}</td></tr>`).join('') || `<tr><td colspan="4">No subscriptions</td></tr>`;
+    const A=state.net.assets||[], L=state.net.liabs||[];
+    const aSum=A.reduce((s,x)=>s+money(x.val),0), lSum=L.reduce((s,x)=>s+money(x.val),0), nw=aSum-lSum;
+
+    const body = `
+      <div class="card"><h2>Planner / KPIs</h2>
+      <p>Monthly income: <b class="mono">${fmt(state.planner.income)}</b> • Other: <b class="mono">${fmt(state.planner.other)}</b> • Savings rate: <b>${state.planner.saveRate}%</b> • Annual raise: <b>${state.planner.raise}%</b> • Horizon: <b>${state.planner.horizon} years</b> • Emergency months: <b>${state.planner.emergMonths}</b></p>
+      <p>Key Figures — Monthly Net: <b class="mono">${$('#k_month').textContent}</b> • Year-1 Savings: <b class="mono">${$('#k_year').textContent}</b> • ${$('#k_span').textContent} Savings: <b class="mono">${$('#k_yrs').textContent}</b> • Emergency Fund Target: <b class="mono">${$('#k_emerg').textContent}</b></p></div>
+      <div class="card"><h2>Budget</h2><table><tr><th>Category</th><th>Type</th><th class="right">Amount</th></tr>${budRows}</table></div>
+      <div class="card"><h2>Debts</h2><table><tr><th>Name</th><th>Type</th><th class="right">Balance</th><th>APR</th><th class="right">Min</th><th class="right">Limit</th></tr>${debtRows}</table></div>
+      <div class="card"><h2>Funds</h2><table><tr><th>Name</th><th class="right">Monthly</th><th>Growth</th><th>Notes</th></tr>${fundRows}</table></div>
+      <div class="card"><h2>Subscriptions</h2><table><tr><th>Name</th><th class="right">Monthly</th><th>Cycle</th><th>Notes</th></tr>${subsRows}</table></div>
+      <div class="card"><h2>Net Worth</h2><p>Assets: <b class="mono">${fmt(aSum)}</b> • Liabilities: <b class="mono">${fmt(lSum)}</b> • Net Worth: <b class="mono">${fmt(nw)}</b></p></div>`;
+    dlFile('financial_summary.html', htmlDoc('Financial Summary — Life Compass Pro', body), 'text/html');
+  };
+  $('#all_clear').onclick=()=>{ if(confirm('Clear ALL financial data (local)?')){ state={planner:{income:0,other:0,saveRate:10,raise:3,emergMonths:6,horizon:5},budget:{},tx:[],career:{},debts:[],funds:[],subs:[],net:{assets:[],liabs:[],snaps:[]},bills:[]}; save(K,state); initAll(); } };
+
+  /* ===== INIT ===== */
+  function initAll(){
+    hydratePlanner();
+    renderBudget();
+    renderDebts();
+    renderFunds();
+    renderSubs();
+    renderNW();
+    renderBills();
+    hiliteTabs();
+  }
+  document.addEventListener('DOMContentLoaded', initAll);
+
+  // logout (works if header is included inline or via iframe)
+  document.addEventListener('click', (e)=>{
+    if(e.target?.id==='logoutBtn'){
+      e.preventDefault();
+      localStorage.removeItem('lc_session_v1');
+      sessionStorage.removeItem('lc_session_v1');
+      alert('✅ You have been logged out.');
+      (window.top||window).location.href='auth.html';
+    }
+  });
+  </script>
+
+  <!-- Include shared header loader -->
+  <script src="include.js" defer></script>
+  <script src="lifecompass.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</body>
+</html>
