@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="lcp-nav.css">
+<script src="lcp-nav.js" defer></script>
+  <meta charset="utf-8"/>
+  <title>My Life Compass Solutions — Growth Areas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="theme-color" content="#2563eb">
+  <link rel="stylesheet" href="styles.css"/>
+  <script src="mood-switcher.js" defer></script>
+  <style>
+    /* Page polish: piggybacks on your token system in styles.css */
+    main.wrap{ width:min(1200px, 94vw); margin-inline:auto }
+    .toolbar{
+      position:sticky; top:calc(var(--header-h) + 6px); z-index:40;
+      background: color-mix(in srgb, var(--panel) 92%, transparent);
+      border:1px solid var(--line); border-radius:12px; padding:10px; margin:14px 0;
+      display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;
+      backdrop-filter:saturate(140%) blur(6px);
+      box-shadow: var(--shadow-1);
+    }
+    .btn, .pill-btn{
+      border:1px solid color-mix(in srgb, var(--accent), #000 20%);
+      background: var(--accent); color:#fff; font-weight:800; padding:.6rem .8rem; border-radius:11px; cursor:pointer;
+      transition: transform .16s var(--ease-1), box-shadow .16s var(--ease-1);
+    }
+    .btn:hover{ transform:translateY(-1px); box-shadow: var(--shadow-2) }
+    .btn.ghost{ background:transparent; color:var(--accent); border-color:var(--accent) }
+    .muted-hr{ height:1px; background:var(--line); border:0; margin:8px 0 }
+    .pill{ display:inline-block; border:1px solid var(--line); border-radius:999px; padding:.2rem .55rem; font-weight:700; font-size:.82rem; color:var(--muted) }
+    .hidden{ display:none!important }
+    .w-100{ width:100% }
+
+    /* Tabs */
+    .tabs{ display:flex; gap:6px; flex-wrap:wrap; margin:.4rem 0 .6rem }
+    .tabs button{
+      background: color-mix(in srgb, var(--panel) 96%, transparent);
+      color: var(--text); border:1px solid var(--line); border-radius:999px; padding:.4rem .7rem; font-weight:800; cursor:pointer;
+    }
+    .tabs button.active{ background: var(--accent); color:#fff; border-color: color-mix(in srgb, var(--accent), #000 10%) }
+
+    /* Grid helpers */
+    .grid-2{ display:grid; grid-template-columns:1.2fr .8fr; gap:12px }
+    .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px }
+    .grid-4{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px }
+    @media(max-width:1100px){ .grid-2{ grid-template-columns:1fr } .grid-3{ grid-template-columns:repeat(2,1fr) } .grid-4{ grid-template-columns:repeat(2,1fr) } }
+    @media(max-width:720px){ .grid-3, .grid-4{ grid-template-columns:1fr } }
+
+    /* Cards + lists */
+    .kboard{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px }
+    @media(max-width:1000px){ .kboard{ grid-template-columns:1fr } }
+    .col{ border:1px solid var(--line); border-radius:12px; background:var(--panel); padding:10px; box-shadow:var(--shadow-1) }
+    .col h4{ margin:.2rem 0 .4rem }
+    .stack > *{ margin:6px 0 }
+    .tag{ display:inline-block; padding:.15rem .45rem; border:1px solid var(--line); border-radius:999px; font-size:.78rem; font-weight:700; color:var(--muted) }
+    .row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap }
+    .right{ text-align:right }
+
+    /* Accordion */
+    details{ border:1px solid var(--line); border-radius:12px; padding:8px 10px; background:var(--panel); box-shadow: var(--shadow-1) }
+    details+details{ margin-top:8px }
+    details summary{ cursor:pointer; font-weight:900 }
+    details[open]{ outline:2px solid color-mix(in srgb, var(--accent) 40%, transparent); outline-offset:2px }
+
+    .meter{ appearance:none; width:100% }
+    .meter::-webkit-slider-thumb{ appearance:none; width:18px; height:18px; border-radius:99px; background:var(--accent); border:1px solid color-mix(in srgb, var(--accent), #000 20%) }
+
+    .gallery{ display:grid; grid-template-columns:repeat(6,1fr); gap:8px }
+    @media(max-width:900px){ .gallery{ grid-template-columns:repeat(3,1fr) } }
+    .gallery img{ width:100%; aspect-ratio:1/1; object-fit:cover; border:1px solid var(--line); border-radius:8px }
+
+    .quote{ border-left:3px solid var(--accent); padding-left:10px; color:var(--muted) }
+  </style>
+</head>
+<body>
+  
+
+  <div id="site-header" data-include="header.html"></div>
+
+  <main class="wrap">
+    <section class="card" style="margin:16px 0">
+      <h1>🌱 Growth Areas — Past → Present → Far Future</h1>
+      <p class="muted">Map every dimension of growth: ancient wisdom to space-age skills. Capture goals, habits, skills, projects, mentors, resources, experiments, timelines, and more. Everything saves locally.</p>
+
+      <div class="toolbar" role="toolbar" aria-label="Growth toolbar">
+        <div class="row">
+          <input id="searchBox" placeholder="Search titles, tags, notes…" style="width:min(340px, 60vw)">
+          <button id="addQuick" class="btn">＋ Quick Add</button>
+          <button id="exportBtn" class="btn ghost">Export JSON</button>
+          <label class="btn ghost">Import JSON <input id="importFile" type="file" accept="application/json" class="hidden"></label>
+          <button id="printBtn" class="btn ghost">Print</button>
+        </div>
+        <div class="row">
+          <span class="pill" id="statsPill">— items</span>
+          <button id="toCalendar" class="btn ghost">Push to Calendar</button>
+        </div>
+      </div>
+
+      <div class="tabs" id="tabs"></div>
+    </section>
+
+    <!-- ======== PANELS ======== -->
+
+    <!-- Overview / Wheel of Life -->
+    <section id="panel-overview" class="card">
+      <h2>Overview</h2>
+      <div class="grid-2">
+        <div class="jc-card">
+          <h3>Wheel of Life (self-ratings)</h3>
+          <div class="grid-3">
+            <!-- Each slider binds to DB.wheel[...] -->
+            <div><label>Spiritual <input type="range" min="0" max="10" step="1" class="meter" data-wheel="spiritual"><div class="pill" id="w-spiritual">0/10</div></label></div>
+            <div><label>Physical <input type="range" min="0" max="10" step="1" class="meter" data-wheel="physical"><div class="pill" id="w-physical">0/10</div></label></div>
+            <div><label>Mental <input type="range" min="0" max="10" step="1" class="meter" data-wheel="mental"><div class="pill" id="w-mental">0/10</div></label></div>
+            <div><label>Emotional <input type="range" min="0" max="10" step="1" class="meter" data-wheel="emotional"><div class="pill" id="w-emotional">0/10</div></label></div>
+            <div><label>Relationships <input type="range" min="0" max="10" step="1" class="meter" data-wheel="relationships"><div class="pill" id="w-relationships">0/10</div></label></div>
+            <div><label>Family/Parenting <input type="range" min="0" max="10" step="1" class="meter" data-wheel="family"><div class="pill" id="w-family">0/10</div></label></div>
+            <div><label>Career/Calling <input type="range" min="0" max="10" step="1" class="meter" data-wheel="career"><div class="pill" id="w-career">0/10</div></label></div>
+            <div><label>Financial <input type="range" min="0" max="10" step="1" class="meter" data-wheel="financial"><div class="pill" id="w-financial">0/10</div></label></div>
+            <div><label>Creative/Art <input type="range" min="0" max="10" step="1" class="meter" data-wheel="creative"><div class="pill" id="w-creative">0/10</div></label></div>
+            <div><label>Learning/Study <input type="range" min="0" max="10" step="1" class="meter" data-wheel="learning"><div class="pill" id="w-learning">0/10</div></label></div>
+            <div><label>Service/Civic <input type="range" min="0" max="10" step="1" class="meter" data-wheel="civic"><div class="pill" id="w-civic">0/10</div></label></div>
+            <div><label>Environment/Stewardship <input type="range" min="0" max="10" step="1" class="meter" data-wheel="environment"><div class="pill" id="w-environment">0/10</div></label></div>
+            <div><label>Digital/AI Fluency <input type="range" min="0" max="10" step="1" class="meter" data-wheel="digital"><div class="pill" id="w-digital">0/10</div></label></div>
+            <div><label>Security/Preparedness <input type="range" min="0" max="10" step="1" class="meter" data-wheel="preparedness"><div class="pill" id="w-preparedness">0/10</div></label></div>
+          </div>
+        </div>
+        <div class="jc-card">
+          <h3>North Star</h3>
+          <textarea id="northStar" rows="10" placeholder="Vision, values, virtues, life verses, mission."></textarea>
+          <div class="row">
+            <input id="northTags" placeholder="tags (comma)" style="flex:1">
+            <button id="saveNorth" class="btn">Save</button>
+          </div>
+          <p class="quote" id="northMeta"></p>
+        </div>
+      </div>
+
+      <div class="jc-divider"></div>
+
+      <h3>Archetypal Epochs (ancient → future)</h3>
+      <div class="grid-4">
+        <div class="jc-card">
+          <h4>Ancient Wisdom</h4>
+          <ul class="stack">
+            <li>Spiritual disciplines (prayer, contemplation, fasting)</li>
+            <li>Virtues & moral philosophy (wisdom, justice, courage, temperance)</li>
+            <li>Craft mastery (stone, metal, textiles, architecture)</li>
+            <li>Community rites & oral tradition</li>
+          </ul>
+        </div>
+        <div class="jc-card">
+          <h4>Classical & Medieval</h4>
+          <ul class="stack">
+            <li>Logic, rhetoric & the trivium / quadrivium</li>
+            <li>Scholasticism, monasteries, guilds, apprenticeships</li>
+            <li>Music, geometry, astronomy, natural philosophy</li>
+          </ul>
+        </div>
+        <div class="jc-card">
+          <h4>Modern & Post-Industrial</h4>
+          <ul class="stack">
+            <li>Scientific method, engineering, design</li>
+            <li>Finance & entrepreneurship</li>
+            <li>Wellbeing science, psychology, systems thinking</li>
+          </ul>
+        </div>
+        <div class="jc-card">
+          <h4>Space Age & Beyond</h4>
+          <ul class="stack">
+            <li>AI co-creation, promptcraft, agents, safety</li>
+            <li>Bio-literacy, longevity, neurotech</li>
+            <li>Space operations, off-world survival, ethics</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Goals & OKRs -->
+    <section id="panel-goals" class="card hidden">
+      <h2>Goals & OKRs</h2>
+      <div class="row">
+        <input id="goalTitle" placeholder="Goal / Outcome" style="flex:2">
+        <input id="goalWhen" type="date" style="flex:1">
+        <input id="goalTags" placeholder="tags (comma)" style="flex:1">
+        <select id="goalArea" style="flex:1">
+          <option value="">Area</option>
+          <option>Spiritual</option><option>Physical</option><option>Mental</option><option>Emotional</option>
+          <option>Relationships</option><option>Family</option><option>Career</option><option>Financial</option>
+          <option>Creative</option><option>Learning</option><option>Civic</option><option>Environment</option>
+          <option>Digital</option><option>Preparedness</option>
+        </select>
+        <button id="addGoal" class="btn">Add</button>
+      </div>
+      <div class="kboard" id="goalsBoard">
+        <div class="col" data-col="backlog"><h4>Backlog</h4><div class="stack" id="goals-backlog"></div></div>
+        <div class="col" data-col="active"><h4>Active</h4><div class="stack" id="goals-active"></div></div>
+        <div class="col" data-col="done"><h4>Done</h4><div class="stack" id="goals-done"></div></div>
+      </div>
+    </section>
+
+    <!-- Habits -->
+    <section id="panel-habits" class="card hidden">
+      <h2>Habits & Rituals</h2>
+      <div class="row">
+        <input id="habitTitle" placeholder="e.g., Morning prayer, Walk 20 min, Read 10 pages" style="flex:2">
+        <select id="habitFreq"><option>Daily</option><option>Weekly</option><option>Monthly</option></select>
+        <input id="habitTags" placeholder="tags (comma)">
+        <button id="addHabit" class="btn">Add</button>
+      </div>
+      <div id="habitsList" class="stack"></div>
+    </section>
+
+    <!-- Skills Matrix -->
+    <section id="panel-skills" class="card hidden">
+      <h2>Skills Matrix (ancient → future)</h2>
+      <div class="row">
+        <input id="skillName" placeholder="Skill (e.g., Blacksmithing • Prompt Engineering • First Aid)" style="flex:2">
+        <select id="skillTier">
+          <option>Novice</option><option>Apprentice</option><option>Journeyman</option><option>Adept</option><option>Master</option>
+        </select>
+        <input id="skillTags" placeholder="tags (comma)">
+        <button id="addSkill" class="btn">Add</button>
+      </div>
+      <details open><summary><b>Ancient & Classical</b> (craft, philosophy, rhetoric)</summary><div id="skills-ancient" class="stack"></div></details>
+      <details><summary><b>Practical & Survival</b> (homestead, fieldcraft, med)</summary><div id="skills-survival" class="stack"></div></details>
+      <details><summary><b>Modern & Professional</b> (STEM, biz, design)</summary><div id="skills-modern" class="stack"></div></details>
+      <details><summary><b>Digital & AI</b> (promptcraft, agents, safety)</summary><div id="skills-ai" class="stack"></div></details>
+      <details><summary><b>Frontiers</b> (space, longevity, ethics)</summary><div id="skills-future" class="stack"></div></details>
+    </section>
+
+    <!-- Projects / Experiments -->
+    <section id="panel-projects" class="card hidden">
+      <h2>Projects & Experiments</h2>
+      <div class="row">
+        <input id="projTitle" placeholder="Project or Experiment" style="flex:2">
+        <input id="projOutcome" placeholder="Desired outcome" style="flex:1.5">
+        <input id="projTags" placeholder="tags (comma)">
+        <button id="addProject" class="btn">Add</button>
+      </div>
+      <div class="kboard">
+        <div class="col"><h4>Ideas</h4><div id="proj-ideas" class="stack"></div></div>
+        <div class="col"><h4>Doing</h4><div id="proj-doing" class="stack"></div></div>
+        <div class="col"><h4>Archive</h4><div id="proj-done" class="stack"></div></div>
+      </div>
+    </section>
+
+    <!-- Resources / Mentors -->
+    <section id="panel-resources" class="card hidden">
+      <h2>Resources & Mentors</h2>
+      <div class="grid-2">
+        <div class="jc-card">
+          <h3>Resources</h3>
+          <div class="row">
+            <input id="resTitle" placeholder="Book / Course / Article / Tool" style="flex:2">
+            <input id="resLink" placeholder="URL (optional)" style="flex:2">
+            <input id="resTags" placeholder="tags (comma)" style="flex:1">
+            <button id="addRes" class="btn">Add</button>
+          </div>
+          <div id="resList" class="stack"></div>
+        </div>
+        <div class="jc-card">
+          <h3>Mentors & Role Models</h3>
+          <div class="row">
+            <input id="menName" placeholder="Name (alive or historical)" style="flex:1.5">
+            <input id="menWhy" placeholder="Why they matter" style="flex:2">
+            <input id="menTags" placeholder="tags (comma)" style="flex:1">
+            <button id="addMentor" class="btn">Add</button>
+          </div>
+          <div id="mentorList" class="stack"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Timelines -->
+    <section id="panel-timeline" class="card hidden">
+      <h2>Timelines (BCE → distant future)</h2>
+      <div class="row">
+        <input id="timeLabel" placeholder="Milestone (e.g., Learn Koine Greek / Mars EVA cert)">
+        <input id="timeYear" type="number" placeholder="Year (e.g., -500, 2026, 2125)">
+        <input id="timeTags" placeholder="tags (comma)">
+        <button id="addTime" class="btn">Add</button>
+      </div>
+      <div id="timelineList" class="stack"></div>
+    </section>
+
+    <!-- Reflections -->
+    <section id="panel-reflect" class="card hidden">
+      <h2>Reflections & Prompts</h2>
+      <div class="grid-2">
+        <div class="jc-card">
+          <h3>Write</h3>
+          <textarea id="refText" rows="10" placeholder="What did I learn? What surprised me? Where did I show courage? What needs grace?"></textarea>
+          <div class="row">
+            <input id="refTags" placeholder="tags (comma)" style="flex:1">
+            <button id="saveRef" class="btn">Save Reflection</button>
+          </div>
+        </div>
+        <div class="jc-card">
+          <h3>Suggested Prompts</h3>
+          <ul class="stack" id="promptList"></ul>
+        </div>
+      </div>
+      <div class="jc-divider"></div>
+      <h3>Archive</h3>
+      <div id="refList" class="stack"></div>
+    </section>
+
+    <!-- Search results -->
+    <section id="panel-search" class="card hidden">
+      <h2>Search Results</h2>
+      <div id="searchResults" class="stack-md"></div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p>Guided by Faith. Strengthened by Fire. Moved by Stillness.</p>
+      <p>&copy; 2025 My Life Compass Solutions — by LovingSmiles</p>
+    </div>
+  </footer>
+
+  <script>
+    /* ========= Core helpers ========= */
+    const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+    const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+    const read=(k,fb)=>{ try{return JSON.parse(localStorage.getItem(k)) ?? fb}catch{return fb} };
+    const uid=()=>crypto?.randomUUID?.()||Math.random().toString(36).slice(2);
+    const pad=n=>String(n).padStart(2,'0');
+    const TISO = new Date().toISOString().slice(0,10);
+    function toast(msg, ms=1600){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),ms); }
+
+    /* ========= Storage ========= */
+    const GK='lc_growth_v1';
+    const CK='lc_calendar_v1'; // existing calendar key
+    // DB schema
+    // { wheel:{...}, north:{text,tags,ts}, goals:[{id,title,area,tags[],when,column}], habits:[{id,title,freq,tags[],stamps{ISO:true}}], skills:[{id,name,tier,cluster,tags[]}], projects:[{id,title,outcome,tags[],column}], resources:[{id,title,link,tags[]}], mentors:[{id,name,why,tags[]}], timeline:[{id,label,year,tags[]}], reflections:[{id,text,tags[],ts}] }
+    let DB = read(GK, {
+      wheel:{spiritual:0,physical:0,mental:0,emotional:0,relationships:0,family:0,career:0,financial:0,creative:0,learning:0,civic:0,environment:0,digital:0,preparedness:0},
+      north:{text:'',tags:[],ts:null},
+      goals:[], habits:[], skills:[], projects:[], resources:[], mentors:[], timeline:[], reflections:[]
+    });
+
+    /* ========= Calendar helpers (shared) ========= */
+    function calendarLoad(){ try{ return JSON.parse(localStorage.getItem(CK)) || {months:{},days:{}} }catch{ return {months:{},days:{}} } }
+    function calendarSave(db){ localStorage.setItem(CK, JSON.stringify(db)); }
+    function addNoteToCalendarDate(iso, text, color='blue', time='09:00'){
+      const c = calendarLoad();
+      if(!c.days[iso]) c.days[iso]={notes:'',tags:[],color:'',photos:[],todos:[],reminders:[]};
+      c.days[iso].notes = (c.days[iso].notes? (c.days[iso].notes+'\\n'): '') + text;
+      if(color) c.days[iso].color=color;
+      c.days[iso].reminders.push({id:uid(), time, msg:text, repeat:'none'});
+      calendarSave(c);
+    }
+
+    /* ========= Tabs ========= */
+    const PANELS = [
+      {id:'overview',  label:'Overview'},
+      {id:'goals',     label:'Goals'},
+      {id:'habits',    label:'Habits'},
+      {id:'skills',    label:'Skills'},
+      {id:'projects',  label:'Projects'},
+      {id:'resources', label:'Resources'},
+      {id:'timeline',  label:'Timelines'},
+      {id:'reflect',   label:'Reflections'}
+    ];
+    function buildTabs(){
+      const host = $('#tabs'); host.innerHTML='';
+      PANELS.forEach((p,i)=>{
+        const b=document.createElement('button');
+        b.textContent=p.label; b.className= i===0 ? 'active' : '';
+        b.onclick=()=>showPanel(p.id, b);
+        host.appendChild(b);
+      });
+    }
+    function showPanel(id, btn){
+      PANELS.forEach(p=> $('#panel-'+p.id).classList.add('hidden'));
+      $('#panel-'+id).classList.remove('hidden');
+      $$('#tabs button').forEach(x=>x.classList.remove('active'));
+      btn?.classList.add('active');
+      if(id!=='reflect') $('#panel-search').classList.add('hidden');
+    }
+
+    /* ========= Overview bindings ========= */
+    function bindWheel(){
+      $$('.meter').forEach(sl=>{
+        const key = sl.getAttribute('data-wheel');
+        sl.value = DB.wheel[key] ?? 0;
+        $('#w-'+key).textContent = sl.value + '/10';
+        sl.oninput = ()=>{
+          DB.wheel[key] = +sl.value;
+          $('#w-'+key).textContent = sl.value + '/10';
+          persist();
+        };
+      });
+      $('#northStar').value = DB.north.text || '';
+      $('#northTags').value = (DB.north.tags||[]).join(', ');
+      $('#northMeta').textContent = DB.north.ts ? `Last saved: ${new Date(DB.north.ts).toLocaleString()}` : '';
+      $('#saveNorth').onclick = ()=>{
+        DB.north.text = $('#northStar').value;
+        DB.north.tags = $('#northTags').value.split(',').map(s=>s.trim()).filter(Boolean);
+        DB.north.ts = Date.now(); persist(); toast('Saved ✅');
+      };
+    }
+
+    /* ========= Goals ========= */
+    function addGoalCard(g, host){
+      const div=document.createElement('div'); div.className='jc-card';
+      const due = g.when ? ` • <span class="pill">${g.when}</span>` : '';
+      div.innerHTML = `<div class="row" style="justify-content:space-between">
+        <div><b>${(g.title||'').replace(/</g,'&lt;')}</b> ${g.area?`<span class="tag">${g.area}</span>`:''} ${(g.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')} ${due}</div>
+        <div class="row">
+          <button class="btn ghost" data-mv="backlog">Backlog</button>
+          <button class="btn ghost" data-mv="active">Active</button>
+          <button class="btn ghost" data-mv="done">Done</button>
+          <button class="btn" data-cal>📅</button>
+          <button class="btn ghost" data-del>Delete</button>
+        </div>
+      </div>`;
+      div.onclick = (e)=>{
+        const mv = e.target.getAttribute('data-mv');
+        if(mv){ g.column=mv; persist(); renderGoals(); }
+        if(e.target.hasAttribute('data-del')){ DB.goals=DB.goals.filter(x=>x.id!==g.id); persist(); renderGoals(); }
+        if(e.target.hasAttribute('data-cal')){
+          const iso = g.when || TISO;
+          addNoteToCalendarDate(iso, `🎯 ${g.title}`, 'green','09:00');
+          toast('Pushed to Calendar');
+        }
+      };
+      host.appendChild(div);
+    }
+    function renderGoals(){
+      ['backlog','active','done'].forEach(col=> $('#goals-'+col).innerHTML='');
+      DB.goals.forEach(g=> addGoalCard(g, $('#goals-'+(g.column||'backlog'))));
+      statCount();
+    }
+    $('#addGoal').onclick=()=>{
+      const title=$('#goalTitle').value.trim(); if(!title) return;
+      DB.goals.push({id:uid(), title, area:$('#goalArea').value||'', when:$('#goalWhen').value||'', tags:$('#goalTags').value.split(',').map(s=>s.trim()).filter(Boolean), column:'backlog'});
+      ['#goalTitle','#goalTags','#goalWhen'].forEach(s=>$(s).value=''); $('#goalArea').value='';
+      persist(); renderGoals();
+    };
+
+    /* ========= Habits ========= */
+    function renderHabits(){
+      const host=$('#habitsList'); host.innerHTML='';
+      if(!DB.habits.length){ host.innerHTML='<div class="muted">No habits yet.</div>'; return; }
+      DB.habits.forEach(h=>{
+        const days = 30; // simple 30-day strip
+        const row=document.createElement('div'); row.className='jc-card';
+        row.innerHTML = `<div class="row" style="justify-content:space-between">
+          <div><b>${(h.title||'').replace(/</g,'&lt;')}</b> <span class="tag">${h.freq}</span> ${(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+          <div class="row"><button class="btn ghost" data-del>Delete</button></div>
+        </div>
+        <div class="row" style="flex-wrap:wrap; gap:6px; margin-top:6px">${Array.from({length:days}).map((_,i)=>{
+          const d=new Date(); d.setDate(d.getDate()- (days-1-i));
+          const k=d.toISOString().slice(0,10);
+          const on = h.stamps?.[k];
+          return `<button class="pill-btn" style="padding:.25rem .5rem; ${on?'':'background:transparent;color:var(--accent)'}" data-hit="${k}">${k.slice(5)}</button>`;
+        }).join('')}</div>`;
+        row.onclick=(e)=>{
+          const k=e.target.getAttribute('data-hit'); if(k){
+            h.stamps=h.stamps||{}; h.stamps[k]=!h.stamps[k]; persist(); renderHabits();
+          }
+          if(e.target.hasAttribute('data-del')){ DB.habits=DB.habits.filter(x=>x.id!==h.id); persist(); renderHabits(); }
+        };
+        host.appendChild(row);
+      });
+      statCount();
+    }
+    $('#addHabit').onclick=()=>{
+      const title=$('#habitTitle').value.trim(); if(!title) return;
+      DB.habits.push({id:uid(), title, freq:$('#habitFreq').value, tags:$('#habitTags').value.split(',').map(s=>s.trim()).filter(Boolean), stamps:{}});
+      ['#habitTitle','#habitTags'].forEach(s=>$(s).value=''); $('#habitFreq').value='Daily';
+      persist(); renderHabits();
+    };
+
+    /* ========= Skills ========= */
+    function skillClusterByName(name){
+      const n=name.toLowerCase();
+      if(/smith|weave|rhetoric|greek|latin|logic|archery|calligraphy/.test(n)) return 'ancient';
+      if(/first aid|homestead|garden|wilderness|radio|ham|forage|fire|water|security|trauma/.test(n)) return 'survival';
+      if(/account|design|marketing|law|civil|software|physics|biology|math|chem/.test(n)) return 'modern';
+      if(/ai|prompt|agent|ml|data|cyber|cloud|devops|safety|alignment/.test(n)) return 'ai';
+      if(/space|orbital|eva|fusion|longevity|neuro|cryonics|terraform/.test(n)) return 'future';
+      return 'modern';
+    }
+    function renderSkills(){
+      ['ancient','survival','modern','ai','future'].forEach(k=> $('#skills-'+k).innerHTML='');
+      DB.skills.forEach(s=>{
+        const row=document.createElement('div'); row.className='jc-card';
+        row.innerHTML = `<div class="row" style="justify-content:space-between">
+          <div><b>${(s.name||'').replace(/</g,'&lt;')}</b> <span class="tag">${s.tier}</span> ${(s.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+          <div class="row"><button class="btn ghost" data-del>Delete</button></div>
+        </div>`;
+        row.onclick=(e)=>{ if(e.target.hasAttribute('data-del')){ DB.skills=DB.skills.filter(x=>x.id!==s.id); persist(); renderSkills(); } };
+        $('#skills-'+(s.cluster||'modern')).appendChild(row);
+      });
+      statCount();
+    }
+    $('#addSkill').onclick=()=>{
+      const name=$('#skillName').value.trim(); if(!name) return;
+      const tier=$('#skillTier').value;
+      const tags=$('#skillTags').value.split(',').map(s=>s.trim()).filter(Boolean);
+      const cluster=skillClusterByName(name);
+      DB.skills.push({id:uid(), name, tier, tags, cluster});
+      ['#skillName','#skillTags'].forEach(s=>$(s).value=''); $('#skillTier').value='Novice';
+      persist(); renderSkills();
+    };
+
+    /* ========= Projects / Experiments ========= */
+    function renderProjects(){
+      ['ideas','doing','done'].forEach(k=> $('#proj-'+k).innerHTML='');
+      DB.projects.forEach(p=>{
+        const row=document.createElement('div'); row.className='jc-card';
+        row.innerHTML = `<div class="row" style="justify-content:space-between">
+          <div><b>${(p.title||'').replace(/</g,'&lt;')}</b> ${p.outcome?`→ ${(p.outcome||'').replace(/</g,'&lt;')}`:''} ${(p.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+          <div class="row">
+            <button class="btn ghost" data-mv="ideas">Ideas</button>
+            <button class="btn ghost" data-mv="doing">Doing</button>
+            <button class="btn ghost" data-mv="done">Archive</button>
+            <button class="btn" data-cal>📅</button>
+            <button class="btn ghost" data-del>Delete</button>
+          </div>
+        </div>`;
+        row.onclick=(e)=>{
+          const mv=e.target.getAttribute('data-mv');
+          if(mv){ p.column=mv; persist(); renderProjects(); }
+          if(e.target.hasAttribute('data-del')){ DB.projects=DB.projects.filter(x=>x.id!==p.id); persist(); renderProjects(); }
+          if(e.target.hasAttribute('data-cal')){ addNoteToCalendarDate(TISO, `🧪 ${p.title}`, 'blue', '10:00'); toast('Pushed to Calendar'); }
+        };
+        $('#proj-'+(p.column||'ideas')).appendChild(row);
+      });
+      statCount();
+    }
+    $('#addProject').onclick=()=>{
+      const title=$('#projTitle').value.trim(); if(!title) return;
+      DB.projects.push({id:uid(), title, outcome:$('#projOutcome').value.trim(), tags:$('#projTags').value.split(',').map(s=>s.trim()).filter(Boolean), column:'ideas'});
+      ['#projTitle','#projOutcome','#projTags'].forEach(s=>$(s).value='');
+      persist(); renderProjects();
+    };
+
+    /* ========= Resources / Mentors ========= */
+    function renderRes(){
+      const rHost=$('#resList'); rHost.innerHTML='';
+      if(!DB.resources.length) rHost.innerHTML='<div class="muted">Add books/courses/articles/tools here.</div>';
+      DB.resources.forEach(r=>{
+        const row=document.createElement('div'); row.className='jc-card';
+        row.innerHTML = `<div class="row" style="justify-content:space-between">
+          <div><b>${(r.title||'').replace(/</g,'&lt;')}</b> ${r.link?` • <a href="${r.link}" target="_blank" rel="noopener">open</a>`:''} ${(r.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+          <div class="row"><button class="btn ghost" data-del>Delete</button></div>
+        </div>`;
+        row.onclick=(e)=>{ if(e.target.hasAttribute('data-del')){ DB.resources=DB.resources.filter(x=>x.id!==r.id); persist(); renderRes(); } };
+        rHost.appendChild(row);
+      });
+
+      const mHost=$('#mentorList'); mHost.innerHTML='';
+      if(!DB.mentors.length) mHost.innerHTML='<div class="muted">Add mentors or historical exemplars.</div>';
+      DB.mentors.forEach(m=>{
+        const row=document.createElement('div'); row.className='jc-card';
+        row.innerHTML = `<div class="row" style="justify-content:space-between">
+          <div><b>${(m.name||'').replace(/</g,'&lt;')}</b> — ${(m.why||'').replace(/</g,'&lt;')} ${(m.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+          <div class="row"><button class="btn ghost" data-del>Delete</button></div>
+        </div>`;
+        row.onclick=(e)=>{ if(e.target.hasAttribute('data-del')){ DB.mentors=DB.mentors.filter(x=>x.id!==m.id); persist(); renderRes(); } };
+        mHost.appendChild(row);
+      });
+      statCount();
+    }
+    $('#addRes').onclick=()=>{
+      const title=$('#resTitle').value.trim(); if(!title) return;
+      DB.resources.push({id:uid(), title, link:$('#resLink').value.trim(), tags:$('#resTags').value.split(',').map(s=>s.trim()).filter(Boolean)});
+      ['#resTitle','#resLink','#resTags'].forEach(s=>$(s).value=''); persist(); renderRes();
+    };
+    $('#addMentor').onclick=()=>{
+      const name=$('#menName').value.trim(); if(!name) return;
+      DB.mentors.push({id:uid(), name, why:$('#menWhy').value.trim(), tags:$('#menTags').value.split(',').map(s=>s.trim()).filter(Boolean)});
+      ['#menName','#menWhy','#menTags'].forEach(s=>$(s).value=''); persist(); renderRes();
+    };
+
+    /* ========= Timelines ========= */
+    function renderTimeline(){
+      const host=$('#timelineList'); host.innerHTML='';
+      if(!DB.timeline.length){ host.innerHTML='<div class="muted">Add BCE/CE/future milestones. Use negative years for BCE.</div>'; return; }
+      const sorted=[...DB.timeline].sort((a,b)=> (a.year===b.year ? a.label.localeCompare(b.label) : a.year-b.year));
+      sorted.forEach(t=>{
+        const row=document.createElement('div'); row.className='jc-card';
+        const era = t.year<0 ? 'BCE' : (t.year>3000 ? 'Far Future' : 'CE');
+        row.innerHTML = `<div class="row" style="justify-content:space-between">
+          <div><span class="pill">${t.year} ${era}</span> <b>${(t.label||'').replace(/</g,'&lt;')}</b> ${(t.tags||[]).map(x=>`<span class="tag">${x}</span>`).join('')}</div>
+          <div class="row">
+            <button class="btn" data-cal>📅</button>
+            <button class="btn ghost" data-del>Delete</button>
+          </div>
+        </div>`;
+        row.onclick=(e)=>{
+          if(e.target.hasAttribute('data-del')){ DB.timeline=DB.timeline.filter(x=>x.id!==t.id); persist(); renderTimeline(); }
+          if(e.target.hasAttribute('data-cal')){
+            const year = t.year<0 ? 1 : t.year; // push BCE as Jan 1 year 1, otherwise actual
+            const iso = `${String(Math.max(1,year)).padStart(4,'0')}-01-01`;
+            addNoteToCalendarDate(iso, `📜 ${t.label}`, 'amber','08:30');
+            toast('Pushed to Calendar');
+          }
+        };
+        host.appendChild(row);
+      });
+      statCount();
+    }
+    $('#addTime').onclick=()=>{
+      const label=$('#timeLabel').value.trim(); const year=parseInt($('#timeYear').value,10);
+      if(!label || isNaN(year)) return;
+      DB.timeline.push({id:uid(), label, year, tags:$('#timeTags').value.split(',').map(s=>s.trim()).filter(Boolean)});
+      ['#timeLabel','#timeYear','#timeTags'].forEach(s=>$(s).value=''); persist(); renderTimeline();
+    };
+
+    /* ========= Reflections ========= */
+    const PROMPTS = [
+      "What virtue did I practice today? Where did I fall short?",
+      "What is the smallest action that unlocks the biggest change?",
+      "If I were my own mentor, what would I advise right now?",
+      "What should I stop, start, continue?",
+      "When did I feel most alive this week? Least?",
+      "What fear am I carrying that isn’t mine to carry?",
+      "Where can I trade intensity for consistency?",
+      "What would stewardship of body, mind, spirit look like today?",
+      "What craft could I apprentice myself to for 12 months?",
+      "How can I partner with AI without outsourcing my agency?"
+    ];
+    function renderPrompts(){
+      const host=$('#promptList'); host.innerHTML='';
+      PROMPTS.forEach(p=>{
+        const li=document.createElement('li');
+        li.innerHTML = `<div class="row" style="justify-content:space-between"><span>${p}</span><button class="btn ghost" data-use>Use</button></div>`;
+        li.onclick=(e)=>{ if(e.target.hasAttribute('data-use')) $('#refText').value = p + "\\n\\n" + $('#refText').value; };
+        host.appendChild(li);
+      });
+    }
+    function renderRefs(){
+      const host=$('#refList'); host.innerHTML='';
+      if(!DB.reflections.length){ host.innerHTML='<div class="muted">No reflections yet.</div>'; return; }
+      [...DB.reflections].sort((a,b)=>b.ts-a.ts).forEach(r=>{
+        const row=document.createElement('div'); row.className='jc-card';
+        row.innerHTML = `<div class="row" style="justify-content:space-between">
+          <div><span class="pill">${new Date(r.ts).toLocaleString()}</span> ${(r.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+          <div class="row"><button class="btn ghost" data-del>Delete</button></div>
+        </div>
+        <p class="muted" style="white-space:pre-wrap">${(r.text||'').replace(/</g,'&lt;')}</p>`;
+        row.onclick=(e)=>{ if(e.target.hasAttribute('data-del')){ DB.reflections=DB.reflections.filter(x=>x.id!==r.id); persist(); renderRefs(); } };
+        host.appendChild(row);
+      });
+      statCount();
+    }
+    $('#saveRef').onclick=()=>{
+      const text=$('#refText').value.trim(); if(!text) return;
+      DB.reflections.push({id:uid(), text, tags:$('#refTags').value.split(',').map(s=>s.trim()).filter(Boolean), ts:Date.now()});
+      ['#refText','#refTags'].forEach(s=>$(s).value=''); persist(); renderRefs();
+    };
+
+    /* ========= Quick Add ========= */
+    $('#addQuick').onclick=()=>{
+      const t = prompt('Quick add (auto goes to Goals > Backlog). Title?');
+      if(!t) return;
+      DB.goals.push({id:uid(), title:t, area:'', tags:[], when:'', column:'backlog'}); persist(); renderGoals(); showPanel('goals', $$('#tabs button')[1]);
+      toast('Added to Goals › Backlog');
+    };
+
+    /* ========= Search ========= */
+    $('#searchBox').addEventListener('input', ()=>{
+      const q = $('#searchBox').value.trim().toLowerCase();
+      if(!q){ $('#panel-search').classList.add('hidden'); return; }
+      const host=$('#searchResults'); host.innerHTML=''; $('#panel-search').classList.remove('hidden');
+      let count=0;
+      function addHit(title, tags, body, openFn){
+        const card=document.createElement('div'); card.className='jc-card';
+        card.innerHTML = `<div class="row" style="justify-content:space-between">
+          <div><b>${title.replace(/</g,'&lt;')}</b> ${(tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+          <div><button class="btn ghost" data-open>Open</button></div>
+        </div>${body?`<p class="muted" style="white-space:pre-wrap">${body.replace(/</g,'&lt;')}</p>`:''}`;
+        card.onclick=(e)=>{ if(e.target.hasAttribute('data-open')) openFn(); };
+        host.appendChild(card); count++;
+      }
+      DB.goals.forEach(g=>{
+        const hay=[g.title, ...(g.tags||[]), g.area||'', g.when||''].join(' ').toLowerCase();
+        if(hay.includes(q)) addHit('Goal: '+g.title, g.tags, g.area||'', ()=>{ showPanel('goals', $$('#tabs button')[1]); });
+      });
+      DB.habits.forEach(h=>{
+        const hay=[h.title, ...(h.tags||[]), h.freq||''].join(' ').toLowerCase();
+        if(hay.includes(q)) addHit('Habit: '+h.title, h.tags, h.freq, ()=>{ showPanel('habits', $$('#tabs button')[2]); });
+      });
+      DB.skills.forEach(s=>{
+        const hay=[s.name, s.tier, s.cluster, ...(s.tags||[])].join(' ').toLowerCase();
+        if(hay.includes(q)) addHit('Skill: '+s.name, s.tags, s.tier+' • '+s.cluster, ()=>{ showPanel('skills', $$('#tabs button')[3]); });
+      });
+      DB.projects.forEach(p=>{
+        const hay=[p.title, p.outcome, ...(p.tags||[])].join(' ').toLowerCase();
+        if(hay.includes(q)) addHit('Project: '+p.title, p.tags, p.outcome||'', ()=>{ showPanel('projects', $$('#tabs button')[4]); });
+      });
+      DB.resources.forEach(r=>{
+        const hay=[r.title, r.link||'', ...(r.tags||[])].join(' ').toLowerCase();
+        if(hay.includes(q)) addHit('Resource: '+r.title, r.tags, r.link||'', ()=>{ showPanel('resources', $$('#tabs button')[5]); });
+      });
+      DB.mentors.forEach(m=>{
+        const hay=[m.name, m.why||'', ...(m.tags||[])].join(' ').toLowerCase();
+        if(hay.includes(q)) addHit('Mentor: '+m.name, m.tags, m.why||'', ()=>{ showPanel('resources', $$('#tabs button')[5]); });
+      });
+      DB.timeline.forEach(t=>{
+        const hay=[t.label, t.year, ...(t.tags||[])].join(' ').toString().toLowerCase();
+        if(hay.includes(q)) addHit('Timeline: '+t.label, t.tags, String(t.year), ()=>{ showPanel('timeline', $$('#tabs button')[6]); });
+      });
+      DB.reflections.forEach(r=>{
+        const hay=[r.text, ...(r.tags||[])].join(' ').toLowerCase();
+        if(hay.includes(q)) addHit('Reflection', r.tags, r.text.slice(0,220)+'…', ()=>{ showPanel('reflect', $$('#tabs button')[7]); });
+      });
+      if(!count) host.innerHTML='<div class="muted">No matches.</div>';
+    });
+
+    /* ========= Export / Import / Print ========= */
+    $('#exportBtn').onclick=()=>{
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(new Blob([JSON.stringify(DB,null,2)],{type:'application/json'}));
+      a.download='growth.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),800);
+    };
+    $('#importFile').addEventListener('change', ()=>{
+      const f=$('#importFile').files?.[0]; if(!f) return;
+      const fr=new FileReader();
+      fr.onload=()=>{ try{ const data=JSON.parse(fr.result); if(data?.goals && data?.habits){ DB=data; persist(); renderAll(); toast('Imported ✅'); } else alert('Bad import file'); }catch{ alert('Bad import file'); } };
+      fr.readAsText(f);
+    });
+    $('#printBtn').onclick=()=>window.print();
+
+    /* ========= Calendar push ========= */
+    $('#toCalendar').onclick=()=>{
+      const selects = confirm('Push ACTIVE goals and DOING projects to Calendar for today?');
+      if(!selects) return;
+      DB.goals.filter(g=>g.column==='active').forEach(g=> addNoteToCalendarDate(g.when||TISO, `🎯 ${g.title}`, 'green','09:00'));
+      DB.projects.filter(p=>p.column==='doing').forEach(p=> addNoteToCalendarDate(TISO, `🧪 ${p.title}`, 'blue','10:00'));
+      toast('Pushed to Calendar ✅');
+    };
+
+    /* ========= Stats ========= */
+    function statCount(){
+      const n = DB.goals.length + DB.habits.length + DB.skills.length + DB.projects.length + DB.resources.length + DB.mentors.length + DB.timeline.length + DB.reflections.length;
+      $('#statsPill').textContent = `${n} items total`;
+    }
+
+    /* ========= Persistence & rendering ========= */
+    function persist(){ save(GK, DB); }
+    function renderAll(){
+      bindWheel();
+      renderGoals(); renderHabits(); renderSkills(); renderProjects(); renderRes(); renderTimeline(); renderPrompts(); renderRefs();
+      statCount();
+    }
+
+    /* ========= Seed some templates (only once) ========= */
+    (function seed(){
+      if(DB.skills.length || DB.habits.length || DB.goals.length) return;
+      DB.habits.push(
+        {id:uid(), title:'Morning Prayer / Stillness', freq:'Daily', tags:['spiritual','ancient'], stamps:{}},
+        {id:uid(), title:'Walk 20 minutes', freq:'Daily', tags:['physical'], stamps:{}},
+        {id:uid(), title:'Read 10 pages', freq:'Daily', tags:['learning'], stamps:{}}
+      );
+      DB.skills.push(
+        {id:uid(), name:'Logic & Rhetoric', tier:'Apprentice', tags:['ancient','mental'], cluster:'ancient'},
+        {id:uid(), name:'First Aid (Stop the Bleed)', tier:'Novice', tags:['survival','preparedness'], cluster:'survival'},
+        {id:uid(), name:'Prompt Engineering (Co-creation)', tier:'Apprentice', tags:['digital','ai'], cluster:'ai'},
+        {id:uid(), name:'Orbital Mechanics (Basics)', tier:'Novice', tags:['future','space'], cluster:'future'}
+      );
+      DB.goals.push(
+        {id:uid(), title:'Memorize Sermon on the Mount', area:'Spiritual', tags:['scripture','ancient'], when:'', column:'backlog'},
+        {id:uid(), title:'5k in under 30 minutes', area:'Physical', tags:['fitness'], when:'', column:'active'}
+      );
+      DB.projects.push({id:uid(), title:'Family Preparedness Kit', outcome:'72-hour supplies for 4 people', tags:['preparedness','service'], column:'doing'});
+      DB.resources.push({id:uid(), title:'Atomic Habits (J. Clear)', link:'', tags:['habits','psychology']});
+      DB.mentors.push({id:uid(), name:'Florence Nightingale', why:'Compassion + statistics for good', tags:['service','data']});
+      DB.timeline.push({id:uid(), label:'Learn Koine Greek alphabet', year:-200, tags:['ancient','language']});
+      persist();
+    })();
+
+    /* ========= Init ========= */
+    function init(){
+      buildTabs();
+      showPanel('overview', $$('#tabs button')[0]);
+      renderAll();
+    }
+    document.addEventListener('DOMContentLoaded', init);
+
+    /* ========= Logout passthrough ========= */
+    document.addEventListener('click', (e)=>{
+      if(e.target?.id==='logoutBtn'){
+        e.preventDefault();
+        localStorage.removeItem('lc_session_v1');
+        sessionStorage.removeItem('lc_session_v1');
+        alert('✅ You have been logged out.');
+        (window.top||window).location.href='auth.html';
+      }
+    });
+  </script>
+
+  <script src="include.js" defer></script>
+  <script src="lifecompass.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</body>
+</html>

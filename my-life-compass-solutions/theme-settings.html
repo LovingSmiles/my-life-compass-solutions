@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="lcp-nav.css">
+    <script src="lcp-nav.js" defer></script>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Theme Settings — My Life Compass Solutions</title>
+
+  <!-- Theme UI styles (feel free to move into your main CSS if you want) -->
+  <link rel="stylesheet" href="assets/theme.css">
+
+  <style>
+    /* Page layout */
+    body{font-family:system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif;margin:0;background:#f7fafc;color:#0f172a}
+    .wrap{max-width:960px;margin:24px auto;padding:0 16px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px}
+    h1{margin:8px 0 14px}
+    .muted{color:#64748b}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+    /* Theme UI small tweaks */
+    .lcp-theme #lcpPath{display:none}               /* hide (theme-settings.html) */
+    .lcp-theme .image-input{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+    .lcp-theme .image-btn{display:inline-block;padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;cursor:pointer}
+    .lcp-theme .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+    .lcp-theme .thumb{border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#fff}
+    .lcp-theme .thumb img{width:100%;height:100px;object-fit:cover;display:block}
+    .lcp-theme .thumb .bar{display:flex;gap:8px;justify-content:space-between;padding:6px}
+    .lcp-theme .thumb .bar button{border:1px solid #cbd5e1;background:#f8fafc;border-radius:6px;padding:6px 8px;cursor:pointer}
+
+    /* Keep controls at the bottom */
+    #themeControls{margin:24px 0}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="card">
+      <h1>Theme Settings</h1>
+      <p class="muted">
+        Choose a page, then set a <b>Color</b>, <b>Image</b>, or <b>Both</b>. Use
+        <b>“This page”</b> to save only for that page, or <b>“All pages (sitewide)”</b> to apply everywhere.
+        You can upload unlimited images and switch between them anytime.
+      </p>
+
+      <!-- Target page picker (friendly names) -->
+      <div class="row" style="margin-top:8px">
+        <label for="targetPage"><b>Target Page:</b></label>
+        <select id="targetPage">
+  <option value="index.html">Home</option>
+  <option value="vision.html">Vision Board</option>
+  <option value="journal.html">Journal</option>
+  <option value="growth.html">Growth</option>
+  <option value="growth-areas.html">Growth Areas</option>
+  <option value="hobbies.html">Hobbies</option>
+  <option value="spiritual.html">Spiritual</option>
+  <option value="physical.html">Physical</option>
+  <option value="mental.html">Mental</option>
+  <option value="financial.html">Financial</option>
+  <option value="calendar.html">Calendar</option>
+  <option value="contact.html">Contact</option>
+  <option value="feedback.html">Feedback</option>
+  <option value="theme-settings.html">Theme of the Day</option>
+</select>
+        <span class="muted">Pick which page you’re styling.</span>
+      </div>
+    </header>
+
+    <!-- Controls mount AT THE BOTTOM -->
+    <section id="themeControls" class="wrap"></section>
+  </main>
+
+  <!-- Your theme engine (LCP Theme v4) -->
+  <script src="assets/theme.js"></script>
+  <script>
+    // Default color = Light Ocean Blue
+    const DEFAULT_OCEAN = '#63b3ed';
+
+    // Helper to mount/refresh the theme UI for a chosen path
+    function loadThemeUI(forPath){
+      const mount = document.getElementById('themeControls');
+      mount.innerHTML = ''; // clear the old UI
+      // Re-init the theme UI, but aim it at the chosen page path
+      window.LCPTheme.init({
+        mount: '#themeControls',
+        defaultColor: DEFAULT_OCEAN,
+        managePath: forPath
+      });
+    }
+
+    // Initial mount for the current selection
+    const picker = document.getElementById('targetPage');
+    loadThemeUI(picker.value);
+
+    // Rebuild controls when the user changes target page
+    picker.addEventListener('change', () => loadThemeUI(picker.value));
+  </script>
+</body>
+</html>
