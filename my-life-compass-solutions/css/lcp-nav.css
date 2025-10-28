@@ -1,0 +1,188 @@
+:root{
+    /* You can keep setting this per page; JS computes the rest */
+    --mood-color: #2563eb;
+  
+    /* Computed by JS (don’t edit) */
+    --nav-bg: #0b1020;
+    --nav-ink: #e8eefc;
+    --nav-offset: 72px;
+  
+    /* Theme tokens */
+    --nav-border: rgba(255,255,255,.18);
+    --nav-blue: #3b82f6;
+  }
+  
+  /* Space the page down by the bar height (updated live by JS) */
+  body{
+    padding-top: var(--nav-offset, 72px);
+    transition: padding-top .25s ease;
+  }
+  
+  /* Make in-page anchors stop below the bar */
+  [id]{ scroll-margin-top: calc(var(--nav-offset, 72px) + 8px); }
+  
+  /* Floating bar */
+  .lcp-floating-nav{
+    position: fixed;
+    top: 10px;
+    left: 16px;
+    right: 16px;
+    z-index: 10050;
+  
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  
+    padding: 10px 12px;
+    background: color-mix(in oklab, var(--nav-bg) 86%, black 14%);
+    border: 1px solid var(--nav-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    backdrop-filter: saturate(1.2) blur(10px);
+  
+    transform: translateY(0);
+    transition: transform .25s ease, opacity .2s ease;
+  }
+  
+  /* Slide away on scroll down */
+  .lcp-floating-nav.hide{
+    transform: translateY(-140%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  /* Left: hamburger + wrapping links */
+  .lcp-menu{
+    display: none;
+    font: 600 16px/1 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--nav-border);
+    background: color-mix(in oklab, var(--nav-bg) 80%, white 20%);
+    color: var(--nav-ink);
+    cursor: pointer;
+  }
+  
+  .lcp-links{
+    display: flex;
+    flex-wrap: wrap;      /* wrap within the bar */
+    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 180px;
+  }
+  
+  /* Right: search inline + logout pinned */
+  .lcp-right{
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  /* Links */
+  .lcp-links a{
+    white-space: nowrap;
+    text-decoration: none;
+    color: var(--nav-ink);
+    font: 600 13px/1.1 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    opacity: .95;
+    background: color-mix(in oklab, var(--nav-bg) 75%, white 25%);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .lcp-links a:hover{
+    opacity: 1;
+    border-color: color-mix(in oklab, var(--nav-bg), white 28%);
+  }
+  .lcp-links a.active{
+    outline: 0;
+    border-color: var(--nav-blue);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--nav-blue) 30%, transparent 70%);
+  }
+  
+  /* Logout button */
+  .lcp-logout{
+    display: inline-block;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--nav-border);
+    background: color-mix(in oklab, var(--nav-bg) 75%, white 25%);
+    color: var(--nav-ink);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  
+  /* -------- Inline Search (inside nav, before Logout) -------- */
+  .lcp-s{ display: flex; align-items: center; gap: 8px; }
+  .lcp-s-fab{
+    width: 36px; height: 36px; border-radius: 999px;
+    display: grid; place-items: center;
+    background: color-mix(in oklab, var(--nav-bg) 80%, white 20%);
+    color: var(--nav-ink);
+    border: 1px solid var(--nav-border);
+    cursor: pointer;
+  }
+  .lcp-s-wrap{
+    overflow: hidden;
+    width: 0;
+    transition: width .22s ease;
+    border-radius: 10px;
+    border: 1px solid var(--nav-border);
+    background: color-mix(in oklab, var(--nav-bg) 82%, white 18%);
+  }
+  .lcp-s-wrap.open{ width: 320px; }
+  .lcp-s-input{
+    width: 100%;
+    padding: 8px 10px;
+    border: 0; outline: 0;
+    background: transparent;
+    color: var(--nav-ink);
+    font: 500 13px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+  }
+  
+  /* Results panel drops under the bar, aligned right */
+  .lcp-s-results{
+    display: none;
+    position: fixed;
+    top: calc(var(--nav-offset, 72px) + 6px);
+    right: 16px;
+    width: min(92vw, 640px);
+    max-height: min(62vh, 520px);
+    overflow: auto;
+    background: color-mix(in oklab, var(--nav-bg) 88%, black 12%);
+    color: var(--nav-ink);
+    border: 1px solid var(--nav-border);
+    border-radius: 12px;
+    box-shadow: 0 16px 28px rgba(0,0,0,.35);
+    z-index: 10060;
+  }
+  .lcp-s-results.show{ display: block; }
+  
+  .lcp-s-group{ padding: 6px 0 0; }
+  .lcp-s-head{ opacity:.75; font-size:12px; padding: 6px 12px; }
+  
+  .lcp-s-item{
+    display: block;
+    padding: 10px 12px;
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  .lcp-s-item:last-child{ border-bottom: 0; }
+  .lcp-s-item:hover{ background: rgba(255,255,255,.05); }
+  .lcp-s-title{ font-weight: 600; margin-bottom: 4px; }
+  .lcp-s-url{ opacity: .7; font-size: 12px; margin-top: 6px; }
+  .lcp-s-snippet mark{ background: transparent; color: var(--nav-blue); font-weight: 700; }
+  
+  /* Small screens */
+  @media (max-width: 680px){
+    .lcp-menu{ display: inline-block; }
+    .lcp-floating-nav .lcp-links{ display: none; }
+    .lcp-floating-nav.is-open .lcp-links{ display: flex; }
+    .lcp-s-wrap.open{ width: 220px; }
+    .lcp-floating-nav{ gap: 8px; padding: 8px 9px; }
+    .lcp-links a{ font-size: 12px; padding: 7px 8px; }
+  }

@@ -1,0 +1,81 @@
+:root{
+  /* These get overwritten by JS with the user’s choices */
+  --mood-joy:   #2563eb; /* 😀 */
+  --mood-smile: #3b82f6; /* 🙂 */
+  --mood-calm:  #10b981; /* 😌 */
+  --mood-neutral:#94a3b8;/* 😐 */
+  --mood-uncertain:#f59e0b;/* 😕 */
+  --mood-concerned:#f59e0b;/* 😟 */
+  --mood-strained:#f97316; /* 😣 */
+  --mood-sad:   #60a5fa; /* 😢 */
+  --mood-angry: #ef4444; /* 😡 */
+  --mood-furious:#b91c1c;/* 🤬 */
+
+  /* Your “board” color (JS keeps this synced with the emotion you choose) */
+  --board-color: var(--mood-joy);
+}
+
+/* Small floating launcher */
+.lcp-mood-launcher{
+  position:fixed;
+  top:max(10px, env(safe-area-inset-top));
+  right:max(10px, env(safe-area-inset-right));
+  width:48px; height:48px; border-radius:999px;
+  background: var(--board-color);
+  color:#fff; display:grid; place-items:center;
+  box-shadow: 0 8px 20px rgba(0,0,0,.25);
+  cursor:pointer; z-index:9998; border:1px solid rgba(255,255,255,.15);
+  transition: transform .18s ease, background .2s ease;
+}
+.lcp-mood-launcher:active{ transform:scale(.96); }
+
+/* Panel */
+.lcp-mood-panel{
+  position:fixed;
+  top:calc(max(10px, env(safe-area-inset-top)) + 56px);
+  right:max(10px, env(safe-area-inset-right));
+  width:min(92vw, 420px);
+  max-height:min(70vh, 560px);
+  overflow:auto;
+  background:#0b0f16; color:#e7ebf3;
+  border:1px solid #1f2937; border-radius:14px;
+  box-shadow: 0 18px 32px rgba(0,0,0,.35);
+  display:none; z-index:9999;
+}
+.lcp-mood-panel.show{ display:block; }
+.lcp-mood-head{
+  padding:12px 14px; display:flex; gap:8px; align-items:center; justify-content:space-between;
+  border-bottom:1px solid #1f2937;
+}
+.lcp-mood-title{ font: 600 16px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+.lcp-mood-body{ padding: 8px 10px 12px; }
+
+.lcp-mood-row{
+  display:grid; grid-template-columns: 34px 1fr 110px; gap:10px;
+  align-items:center; padding:8px 6px; border-bottom:1px solid #111827;
+}
+.lcp-mood-row:last-child{ border-bottom:0; }
+.lcp-mood-emoji{ font-size:22px; line-height:1; text-align:center; }
+.lcp-mood-label{ opacity:.9; font-size:14px; }
+.lcp-mood-color{
+  width:100%; height:34px; border-radius:10px; border:1px solid #334155;
+  background:#0f172a; color:#e7ebf3; padding:0 8px; display:flex; align-items:center; gap:6px;
+}
+.lcp-mood-color input[type="color"]{
+  appearance:none; width:28px; height:28px; border:0; padding:0; background:transparent; cursor:pointer;
+  border-radius:6px; overflow:hidden;
+}
+
+.lcp-mood-foot{
+  display:flex; gap:10px; padding:10px; border-top:1px solid #1f2937; background:#0b1320;
+  position:sticky; bottom:0;
+}
+.lcp-btn{
+  padding:10px 14px; border-radius:10px; border:1px solid #334155; cursor:pointer;
+  background:#111827; color:#e7ebf3; font-weight:600; flex:1; text-align:center;
+}
+.lcp-btn.primary{ background:#1e293b; border-color:#2563eb; color:#dbeafe; }
+.lcp-lock{
+  font-size:12px; opacity:.9; margin-left:auto; padding:8px 10px;
+  background:#111827; border:1px dashed #334155; border-radius:10px;
+}

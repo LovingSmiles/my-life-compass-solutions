@@ -1,0 +1,78 @@
+/* My Life Compass Solutions — Theme UI */
+.lcp-theme {
+  font: inherit;
+  display: grid;
+  gap: 14px;
+}
+#lcpPath {
+  display: none !important;
+}
+/* section blocks */
+.lcp-theme .block {
+  border: 1px solid #cfe6f6;
+  background: #eef8ff;
+  border-radius: 12px;
+  padding: 12px;
+}
+.lcp-theme h3 { margin: 0 0 8px; color: #0d4770; font-size: 1rem; }
+
+/* Controls */
+.lcp-theme .row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.lcp-theme label { font-weight: 600; color: #0d4770; }
+.lcp-theme input[type="color"] {
+  inline-size: 40px; block-size: 40px;
+  border: none; border-radius: 8px; cursor: pointer;
+}
+
+/* Pretty "Image…" button + hide native input */
+.lcp-theme .image-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border: 1px solid #bcd2e8; border-radius: 8px;
+  background: #e3f4ff; color: #003a5c; cursor: pointer; text-decoration: none;
+}
+.lcp-theme .image-input { display: none; }
+
+/* Buttons / selects */
+.lcp-theme select,
+.lcp-theme button {
+  padding: 8px 12px; border: 1px solid #bcd2e8; border-radius: 8px;
+  background: #e3f4ff; color: #003a5c; cursor: pointer;
+}
+.lcp-theme button:hover { filter: brightness(0.96); }
+
+/* Thumbnails grid */
+.lcp-theme .thumbs {
+  display: grid; gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+}
+.lcp-theme .thumb {
+  position: relative;
+  border: 1px solid #bcd2e8; border-radius: 10px; overflow: hidden;
+  background: #fff;
+}
+.lcp-theme .thumb img {
+  display: block; width: 100%; aspect-ratio: 4/3; object-fit: cover;
+}
+.lcp-theme .thumb .bar {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 6px; padding: 6px; background: #f2f8ff; font-size: 12px;
+}
+.lcp-theme .thumb .act {
+  border: none; background: #d7efff; border-radius: 6px; padding: 4px 8px; cursor: pointer;
+}
+.lcp-theme .thumb .del {
+  border: none; background: #ffe6e6; color: #7a0000; border-radius: 6px; padding: 4px 8px; cursor: pointer;
+}
+
+/* Smooth page background transitions + default light ocean blue */
+body {
+  transition: background-color .3s ease, background-image .4s ease, background-position .4s ease;
+  background-color: #7fd3f7; /* default */
+  color: #042c40;
+}
